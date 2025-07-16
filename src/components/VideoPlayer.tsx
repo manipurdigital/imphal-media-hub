@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { isYouTubeUrl, extractYouTubeVideoId, getYouTubeEmbedUrl } from '@/utils/youtube';
+import { isVimeoUrl, extractVimeoVideoId, getVimeoEmbedUrl } from '@/utils/vimeo';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useVideoResolutions } from '@/hooks/useVideoResolutions';
 import { useVideoPlayback } from '@/hooks/useVideoPlayback';
@@ -82,10 +83,14 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
     hasMoreFallbacks
   } = useVideoPlayback(videoRef, effectiveVideoUrl, videoId);
   
-  // Determine if this is a YouTube video
+  // Determine if this is a YouTube or Vimeo video
   const isYouTube = effectiveVideoUrl ? isYouTubeUrl(effectiveVideoUrl) : false;
   const youTubeVideoId = isYouTube ? extractYouTubeVideoId(effectiveVideoUrl!) : null;
   const youTubeEmbedUrl = youTubeVideoId ? getYouTubeEmbedUrl(youTubeVideoId) : null;
+  
+  const isVimeo = effectiveVideoUrl ? isVimeoUrl(effectiveVideoUrl) : false;
+  const vimeoVideoId = isVimeo ? extractVimeoVideoId(effectiveVideoUrl!) : null;
+  const vimeoEmbedUrl = vimeoVideoId ? getVimeoEmbedUrl(vimeoVideoId) : null;
 
   // Auto-hide controls
   const resetControlsTimeout = useCallback(() => {
@@ -386,6 +391,16 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
+                title={`YouTube video: ${title}`}
+              />
+            ) : isVimeo ? (
+              <iframe
+                src={vimeoEmbedUrl}
+                className="w-full h-full"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={`Vimeo video: ${title}`}
               />
             ) : (
               <video
@@ -415,7 +430,7 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
           )}
 
           {/* Enhanced Video Controls */}
-          {effectiveVideoUrl && !isYouTube && (
+          {effectiveVideoUrl && !isYouTube && !isVimeo && (
             <div 
               className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-6 transition-opacity duration-300 ${
                 showControls ? 'opacity-100' : 'opacity-0'

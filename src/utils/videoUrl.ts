@@ -4,7 +4,7 @@
 
 export interface VideoUrlInfo {
   url: string;
-  type: 'youtube' | 'supabase' | 'external';
+  type: 'youtube' | 'vimeo' | 'supabase' | 'external';
   format?: string;
   needsEncoding: boolean;
   isValid: boolean;
@@ -62,13 +62,15 @@ export const analyzeVideoUrl = (url: string): VideoUrlInfo => {
     };
   }
 
-  let type: 'youtube' | 'supabase' | 'external' = 'external';
+  let type: 'youtube' | 'vimeo' | 'supabase' | 'external' = 'external';
   let format: string | undefined;
   let needsEncoding = false;
 
   // Check URL type
   if (/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)/.test(url)) {
     type = 'youtube';
+  } else if (/^https?:\/\/(www\.)?vimeo\.com/.test(url) || /^https?:\/\/player\.vimeo\.com/.test(url)) {
+    type = 'vimeo';
   } else if (/^https?:\/\/.*\.supabase\.co\/storage\/v1\/object/.test(url)) {
     type = 'supabase';
     // Check if URL has characters that need encoding
@@ -110,9 +112,10 @@ export const validateVideoUrl = (url: string): boolean => {
     
     // Check if it's a known video hosting service
     const isYouTubeUrl = /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)/.test(url);
+    const isVimeoUrl = /^https?:\/\/(www\.)?vimeo\.com/.test(url) || /^https?:\/\/player\.vimeo\.com/.test(url);
     const isSupabaseUrl = /^https?:\/\/.*\.supabase\.co\/storage\/v1\/object/.test(url);
     
-    return hasVideoExtension || isYouTubeUrl || isSupabaseUrl;
+    return hasVideoExtension || isYouTubeUrl || isVimeoUrl || isSupabaseUrl;
   } catch {
     return false;
   }
@@ -143,6 +146,11 @@ export const hasCORSIssues = (url: string): boolean => {
   
   // YouTube videos don't have CORS issues as they use iframe embedding
   if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    return false;
+  }
+  
+  // Vimeo videos don't have CORS issues as they use iframe embedding
+  if (url.includes('vimeo.com') || url.includes('player.vimeo.com')) {
     return false;
   }
   
