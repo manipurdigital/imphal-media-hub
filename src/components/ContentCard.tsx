@@ -138,7 +138,13 @@ const ContentCard = memo(({
           >
             <button 
               className="glass-morphism rounded-full p-4 interactive-scale hover:glow-effect hover:scale-110 transition-all duration-200"
-              onClick={() => setIsVideoPlayerOpen(true)}
+              onClick={() => {
+                if (!videoUrl) {
+                  console.warn('No video URL available for:', title);
+                  return;
+                }
+                setIsVideoPlayerOpen(true);
+              }}
               aria-label={`Play ${title}`}
             >
               <Play className="w-6 h-6 text-white" />
@@ -227,7 +233,13 @@ const ContentCard = memo(({
             <div className="flex items-center space-x-2">
               <button 
                 className="bg-primary rounded-full p-2 transition-all duration-200 interactive-scale glow-effect hover:glow-effect-strong"
-                onClick={() => setIsVideoPlayerOpen(true)}
+                onClick={() => {
+                  if (!videoUrl) {
+                    console.warn('No video URL available for:', title);
+                    return;
+                  }
+                  setIsVideoPlayerOpen(true);
+                }}
                 title="Play video"
               >
                 <Play className="w-4 h-4 text-primary-foreground" />
