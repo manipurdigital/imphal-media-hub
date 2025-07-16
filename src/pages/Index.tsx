@@ -10,6 +10,11 @@ import KangleiFlixOriginalsSection from '@/components/KangleiFlixOriginalsSectio
 import TrendingSection from '@/components/TrendingSection';
 import RecentlyAddedSection from '@/components/RecentlyAddedSection';
 import TopRatedSection from '@/components/TopRatedSection';
+import movie1 from '@/assets/movie-1.jpg';
+import movie2 from '@/assets/movie-2.jpg';
+import movie3 from '@/assets/movie-3.jpg';
+import movie4 from '@/assets/movie-4.jpg';
+import movie5 from '@/assets/movie-5.jpg';
 
 interface ContentItem {
   id: string;
@@ -57,22 +62,33 @@ const Index = () => {
     return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
   };
 
-  const convertVideoToContentItem = (video: VideoSearchResult): ContentItem => ({
-    id: video.id,
-    title: video.title,
-    image: video.thumbnail_url || '/placeholder.svg',
-    rating: video.rating || 7.5,
-    year: video.production_year || video.year || 2024,
-    genre: video.genre,
-    duration: formatDuration(video.duration),
-    description: video.description || 'No description available.',
-    videoUrl: video.video_url,
-    castMembers: video.cast_members || [],
-    director: video.director,
-    contentType: video.content_type,
-    categories: video.categories || [],
-    trailerUrl: video.trailer_url
-  });
+  const convertVideoToContentItem = (video: VideoSearchResult): ContentItem => {
+    // Map thumbnail URLs to imported images
+    const imageMap: { [key: string]: string } = {
+      '/src/assets/movie-1.jpg': movie1,
+      '/src/assets/movie-2.jpg': movie2,
+      '/src/assets/movie-3.jpg': movie3,
+      '/src/assets/movie-4.jpg': movie4,
+      '/src/assets/movie-5.jpg': movie5,
+    };
+
+    return {
+      id: video.id,
+      title: video.title,
+      image: imageMap[video.thumbnail_url] || '/placeholder.svg',
+      rating: video.rating || 7.5,
+      year: video.production_year || video.year || 2024,
+      genre: video.genre,
+      duration: formatDuration(video.duration),
+      description: video.description || 'No description available.',
+      videoUrl: video.video_url,
+      castMembers: video.cast_members || [],
+      director: video.director,
+      contentType: video.content_type,
+      categories: video.categories || [],
+      trailerUrl: video.trailer_url
+    };
+  };
 
   const handleSearch = (query: string, filters?: any) => {
     setSearchQuery(query);
