@@ -1,15 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Settings as SettingsIcon, Shield, Database, Mail, Bell } from 'lucide-react';
+import { Settings as SettingsIcon, Shield, Database, Mail, Bell, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const Settings = () => {
   const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   
   const [settings, setSettings] = useState({
     platformName: 'KANGLEIPAK',
@@ -23,6 +26,52 @@ export const Settings = () => {
     contentAlerts: false,
   });
 
+  const loadSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('key, value');
+
+      if (error) {
+        console.error('Error loading settings:', error);
+        toast({
+          title: "Error loading settings",
+          description: "Failed to load settings from database.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data) {
+        const settingsMap = data.reduce((acc, { key, value }) => {
+          acc[key] = value;
+          return acc;
+        }, {} as Record<string, any>);
+
+        setSettings({
+          platformName: settingsMap.platform_name || 'KANGLEIPAK',
+          platformDescription: settingsMap.platform_description || 'Premium OTT Streaming Platform',
+          maintenanceMode: settingsMap.maintenance_mode || false,
+          requireVerification: settingsMap.require_verification || true,
+          twoFactor: settingsMap.two_factor || false,
+          passwordStrength: settingsMap.password_strength || true,
+          emailNotifications: settingsMap.email_notifications || true,
+          newUserAlerts: settingsMap.new_user_alerts || true,
+          contentAlerts: settingsMap.content_alerts || false,
+        });
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+      toast({
+        title: "Error loading settings",
+        description: "Failed to load settings from database.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleInputChange = (key: string, value: string | boolean) => {
     setSettings(prev => ({
       ...prev,
@@ -30,15 +79,69 @@ export const Settings = () => {
     }));
   };
 
-  const handleSave = () => {
-    // Here you would typically save to your backend/database
-    console.log('Saving settings:', settings);
+  const handleSave = async () => {
+    setSaving(true);
     
-    toast({
-      title: "Settings saved",
-      description: "Your settings have been successfully updated.",
-    });
+    try {
+      const settingsToSave = [
+        { key: 'platform_name', value: settings.platformName },
+        { key: 'platform_description', value: settings.platformDescription },
+        { key: 'maintenance_mode', value: settings.maintenanceMode },
+        { key: 'require_verification', value: settings.requireVerification },
+        { key: 'two_factor', value: settings.twoFactor },
+        { key: 'password_strength', value: settings.passwordStrength },
+        { key: 'email_notifications', value: settings.emailNotifications },
+        { key: 'new_user_alerts', value: settings.newUserAlerts },
+        { key: 'content_alerts', value: settings.contentAlerts },
+      ];
+
+      for (const setting of settingsToSave) {
+        const { error } = await supabase
+          .from('settings')
+          .upsert({
+            key: setting.key,
+            value: setting.value,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'key'
+          });
+
+        if (error) {
+          throw error;
+        }
+      }
+
+      toast({
+        title: "Settings saved",
+        description: "Your settings have been successfully updated.",
+      });
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      toast({
+        title: "Error saving settings",
+        description: "Failed to save settings to database.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Loading settings...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -185,7 +288,10 @@ export const Settings = () => {
       </div>
 
       <div className="flex justify-end">
-        <Button onClick={handleSave}>Save Settings</Button>
+        <Button onClick={handleSave} disabled={saving}>
+          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {saving ? 'Saving...' : 'Save Settings'}
+        </Button>
       </div>
     </div>
   );
