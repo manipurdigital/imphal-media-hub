@@ -128,6 +128,48 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  // Fullscreen functionality
+  const toggleFullscreen = useCallback(() => {
+    const video = videoRef.current;
+    const container = containerRef.current;
+    
+    // Check if already in fullscreen
+    const isCurrentlyFullscreen = !!(
+      document.fullscreenElement ||
+      (document as any).webkitFullscreenElement ||
+      (document as any).mozFullScreenElement ||
+      (document as any).msFullscreenElement
+    );
+    
+    if (isCurrentlyFullscreen) {
+      // Exit fullscreen
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      } else if ((document as any).mozCancelFullScreen) {
+        (document as any).mozCancelFullScreen();
+      } else if ((document as any).msExitFullscreen) {
+        (document as any).msExitFullscreen();
+      }
+    } else {
+      // Enter fullscreen - prefer video element for local videos
+      const targetElement = (!isYouTube && !isVimeo && video) ? video : container;
+      
+      if (targetElement) {
+        if (targetElement.requestFullscreen) {
+          targetElement.requestFullscreen();
+        } else if ((targetElement as any).webkitRequestFullscreen) {
+          (targetElement as any).webkitRequestFullscreen();
+        } else if ((targetElement as any).mozRequestFullScreen) {
+          (targetElement as any).mozRequestFullScreen();
+        } else if ((targetElement as any).msRequestFullscreen) {
+          (targetElement as any).msRequestFullscreen();
+        }
+      }
+    }
+  }, [isYouTube, isVimeo]);
+
   // Keyboard shortcuts
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (!isOpen || !videoRef.current) return;
@@ -165,13 +207,39 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
         break;
       case 'Escape':
         if (isFullscreen) {
-          document.exitFullscreen();
+          toggleFullscreen();
         } else {
           onClose();
         }
         break;
     }
-  }, [isOpen, playbackState, playbackControls, isFullscreen, onClose]);
+  }, [isOpen, playbackState, playbackControls, isFullscreen, onClose, toggleFullscreen]);
+
+  // Fullscreen event listeners
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isCurrentlyFullscreen = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement
+      );
+      setIsFullscreen(isCurrentlyFullscreen);
+    };
+
+    // Add event listeners for fullscreen changes
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
 
   // Mount/unmount effects
   useEffect(() => {
@@ -218,15 +286,6 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
     playbackControls.seek(newTime);
   };
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
-    }
-  };
 
   const handleResolutionChange = useCallback((resolution: typeof currentResolution) => {
     if (!resolution || !videoRef.current) return;
