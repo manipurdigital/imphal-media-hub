@@ -353,31 +353,27 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
     }
   };
 
-  const debouncedSeek = useDebounceCallback((newTime: number) => {
-    if (videoRef.current && isMounted && canPlay) {
-      console.log('Seeking to time:', newTime, 'Duration:', duration);
-      if (isFinite(newTime) && newTime >= 0 && newTime <= duration) {
-        try {
-          videoRef.current.currentTime = newTime;
-        } catch (error) {
-          console.warn('Error seeking video:', error);
-        }
-      }
-    }
-  }, 50);
-
   const handleSeek = (value: number[]) => {
-    if (duration && isFinite(duration) && duration > 0 && canPlay) {
+    console.log('Seek called with:', value, 'Duration:', duration, 'CanPlay:', canPlay);
+    if (videoRef.current && isMounted && duration > 0) {
       const newTime = (value[0] / 100) * duration;
-      console.log('Seek slider value:', value[0], 'New time:', newTime);
-      setCurrentTime(newTime); // Immediate UI update
-      debouncedSeek(newTime); // Debounced actual seek
+      console.log('Setting current time to:', newTime);
+      setCurrentTime(newTime);
+      
+      // Directly set the video time without debouncing for immediate response
+      try {
+        videoRef.current.currentTime = newTime;
+      } catch (error) {
+        console.warn('Error seeking video:', error);
+      }
     }
   };
 
   const handleVolumeChange = (value: number[]) => {
+    console.log('Volume change:', value);
     setVolume(value[0] / 100);
     if (videoRef.current) {
+      videoRef.current.volume = value[0] / 100;
       videoRef.current.muted = false;
       setIsMuted(false);
     }
@@ -612,17 +608,20 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
 
               <div className="flex items-center space-x-2">
                 {/* Playback Speed */}
-                <Select value={playbackSpeed.toString()} onValueChange={(value) => setPlaybackSpeed(Number(value))}>
-                  <SelectTrigger className="w-16 h-8 text-white border-white/30 bg-transparent">
+                <Select value={playbackSpeed.toString()} onValueChange={(value) => {
+                  console.log('Playback speed changed to:', value);
+                  setPlaybackSpeed(Number(value));
+                }}>
+                  <SelectTrigger className="w-16 h-8 text-white border-white/30 bg-black/50 hover:bg-black/70">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0.5">0.5x</SelectItem>
-                    <SelectItem value="0.75">0.75x</SelectItem>
-                    <SelectItem value="1">1x</SelectItem>
-                    <SelectItem value="1.25">1.25x</SelectItem>
-                    <SelectItem value="1.5">1.5x</SelectItem>
-                    <SelectItem value="2">2x</SelectItem>
+                  <SelectContent className="bg-black/90 border-white/30">
+                    <SelectItem value="0.5" className="text-white hover:bg-white/20">0.5x</SelectItem>
+                    <SelectItem value="0.75" className="text-white hover:bg-white/20">0.75x</SelectItem>
+                    <SelectItem value="1" className="text-white hover:bg-white/20">1x</SelectItem>
+                    <SelectItem value="1.25" className="text-white hover:bg-white/20">1.25x</SelectItem>
+                    <SelectItem value="1.5" className="text-white hover:bg-white/20">1.5x</SelectItem>
+                    <SelectItem value="2" className="text-white hover:bg-white/20">2x</SelectItem>
                   </SelectContent>
                 </Select>
 
