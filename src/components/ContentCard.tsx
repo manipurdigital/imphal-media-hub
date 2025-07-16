@@ -75,11 +75,11 @@ const ContentCard = ({
       onMouseLeave={handleMouseLeave}
     >
       {/* Thumbnail Container */}
-      <div className="relative aspect-[3/4] overflow-hidden rounded-xl transform-gpu will-change-transform">
+      <div className="relative aspect-[3/4] overflow-hidden rounded-xl transform-gpu will-change-transform border border-border/30">
         <img 
           src={image} 
           alt={title}
-          className="w-full h-full object-cover transition-transform duration-300 ease-out"
+          className="w-full h-full object-cover transition-all duration-300 ease-out"
           style={{
             transform: isHovered ? 'scale(1.05)' : 'scale(1)',
             transformOrigin: 'center center'
@@ -89,14 +89,14 @@ const ContentCard = ({
         {/* Overlay on hover */}
         {isHovered && (
           <div 
-            className="absolute inset-0 bg-black/60 flex items-center justify-center"
+            className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-center justify-center"
             style={{
               animation: 'fade-in 0.2s ease-out forwards',
               pointerEvents: 'auto'
             }}
           >
             <button 
-              className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-full p-3 hover:bg-white/30 transition-colors duration-200"
+              className="glass-morphism rounded-full p-4 interactive-scale hover:glow-effect"
               onClick={() => setIsVideoPlayerOpen(true)}
             >
               <Play className="w-6 h-6 text-white" />
@@ -105,7 +105,7 @@ const ContentCard = ({
         )}
 
         {/* Rating Badge */}
-        <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded text-yellow-400 text-sm font-semibold flex items-center">
+        <div className="absolute top-2 right-2 glass-morphism px-3 py-1 rounded-full text-yellow-400 text-sm font-semibold flex items-center">
           <span className="mr-1">★</span>
           {rating}
         </div>
@@ -114,9 +114,9 @@ const ContentCard = ({
       {/* Content Info - Shows on hover with stable positioning */}
       {isHovered && (
         <div 
-          className="absolute top-full left-0 right-0 bg-card border border-border rounded-b-xl p-4 z-30 shadow-[var(--card-shadow)]"
+          className="absolute top-full left-0 right-0 glass-gradient border border-border/50 rounded-b-xl p-4 z-30 elevated-shadow"
           style={{
-            animation: 'scale-in 0.2s ease-out forwards',
+            animation: 'slide-down 0.3s ease-out forwards',
             transformOrigin: 'top center',
             pointerEvents: 'auto'
           }}
@@ -179,7 +179,7 @@ const ContentCard = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <button 
-                className="bg-primary rounded-full p-2 hover:bg-primary/80 transition-colors duration-200"
+                className="bg-primary rounded-full p-2 transition-all duration-200 interactive-scale glow-effect hover:glow-effect-strong"
                 onClick={() => setIsVideoPlayerOpen(true)}
                 title="Play video"
               >
@@ -187,7 +187,7 @@ const ContentCard = ({
               </button>
               {trailerUrl && (
                 <button 
-                  className="bg-secondary/50 rounded-full p-2 hover:bg-secondary/70 transition-colors duration-200"
+                  className="glass-morphism rounded-full p-2 transition-all duration-200 interactive-scale hover:glow-effect"
                   onClick={() => {
                     console.log(`Playing trailer for ${title}`);
                     // TODO: Implement trailer functionality
@@ -198,7 +198,7 @@ const ContentCard = ({
                 </button>
               )}
               <button 
-                className="bg-secondary/50 rounded-full p-2 hover:bg-secondary/70 transition-colors duration-200"
+                className="glass-morphism rounded-full p-2 transition-all duration-200 interactive-scale hover:glow-effect"
                 onClick={() => {
                   console.log(`Added ${title} to My List`);
                   // TODO: Implement add to list functionality
@@ -208,7 +208,7 @@ const ContentCard = ({
                 <Plus className="w-4 h-4 text-secondary-foreground" />
               </button>
               <button 
-                className="bg-secondary/50 rounded-full p-2 hover:bg-secondary/70 transition-colors duration-200"
+                className="glass-morphism rounded-full p-2 transition-all duration-200 interactive-scale hover:glow-effect"
                 onClick={() => {
                   console.log(`Liked ${title}`);
                   // TODO: Implement like functionality
@@ -220,7 +220,7 @@ const ContentCard = ({
             </div>
             
             <button 
-              className="bg-secondary/50 rounded-full p-2 hover:bg-secondary/70 transition-colors duration-200"
+              className="glass-morphism rounded-full p-2 transition-all duration-200 interactive-scale hover:glow-effect"
               title="More options"
             >
               <ChevronDown className="w-4 h-4 text-secondary-foreground" />

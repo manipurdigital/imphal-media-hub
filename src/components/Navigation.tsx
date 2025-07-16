@@ -63,22 +63,22 @@ const Navigation = () => {
   };
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border">
+    <nav className="fixed top-0 w-full z-50 glass-gradient border-b border-border/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-8">
-            <Link to="/" className="text-2xl font-bold text-primary glow-effect hover:opacity-80 transition-opacity">
-              StreamFlix
+            <Link to="/" className="text-2xl font-bold text-gradient glow-effect hover:glow-effect-strong transition-all duration-300 interactive-scale">
+              KANGLEIPAK
             </Link>
             
             {/* Navigation Links - Only show if authenticated */}
             {user && (
               <div className="hidden md:flex space-x-6">
-                <Link to="/" className="text-foreground hover:text-primary transition-colors">Home</Link>
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">Movies</a>
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">TV Shows</a>
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors">My List</a>
+                <Link to="/" className="text-foreground hover:text-primary transition-all duration-300 interactive-scale hover:text-glow">Home</Link>
+                <a href="#" className="text-muted-foreground hover:text-primary transition-all duration-300 interactive-scale hover:text-glow">Movies</a>
+                <a href="#" className="text-muted-foreground hover:text-primary transition-all duration-300 interactive-scale hover:text-glow">TV Shows</a>
+                <a href="#" className="text-muted-foreground hover:text-primary transition-all duration-300 interactive-scale hover:text-glow">My List</a>
               </div>
             )}
           </div>
@@ -93,14 +93,15 @@ const Navigation = () => {
                   <input
                     type="text"
                     placeholder="Search movies, shows..."
-                    className="pl-10 pr-4 py-2 bg-input/50 border border-border rounded-lg 
-                             focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary
-                             placeholder:text-muted-foreground text-sm w-64"
+                    className="pl-10 pr-4 py-2 glass-morphism rounded-lg transition-all duration-300
+                             focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50
+                             focus:glow-effect placeholder:text-muted-foreground text-sm w-64
+                             hover:bg-white/10"
                   />
                 </div>
 
                 {/* Notifications */}
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary interactive-scale">
                   <Bell className="w-5 h-5" />
                 </Button>
 

@@ -35,19 +35,19 @@ const ContentCarousel = ({ title, items }: ContentCarouselProps) => {
     <section className="mb-12">
       {/* Section Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl md:text-3xl font-bold text-foreground">{title}</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground text-shadow animate-slide-up">{title}</h2>
         
         {/* Navigation Arrows */}
         <div className="hidden md:flex items-center space-x-2">
           <button
             onClick={() => scroll('left')}
-            className="bg-secondary/50 hover:bg-secondary/70 rounded-full p-2 transition-colors"
+            className="glass-morphism rounded-full p-2 transition-all duration-300 interactive-scale hover:glow-effect"
           >
             <ChevronLeft className="w-5 h-5 text-secondary-foreground" />
           </button>
           <button
             onClick={() => scroll('right')}
-            className="bg-secondary/50 hover:bg-secondary/70 rounded-full p-2 transition-colors"
+            className="glass-morphism rounded-full p-2 transition-all duration-300 interactive-scale hover:glow-effect"
           >
             <ChevronRight className="w-5 h-5 text-secondary-foreground" />
           </button>
