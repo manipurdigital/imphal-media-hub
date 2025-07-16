@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Upload, X, FileVideo, Image } from 'lucide-react';
+import { Upload, X, FileVideo, Image, Monitor } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const videoFormSchema = z.object({
@@ -28,6 +28,11 @@ const videoFormSchema = z.object({
   trailer_url: z.string().url().optional().or(z.literal("")),
   video_url: z.string().min(1, "Video URL is required"),
   thumbnail_url: z.string().optional(),
+  // Resolution fields
+  resolution: z.string().min(1, "Resolution is required"),
+  quality_label: z.string().min(1, "Quality label is required"),
+  bitrate: z.number().optional(),
+  is_default: z.boolean().optional(),
 });
 
 type VideoFormData = z.infer<typeof videoFormSchema>;
@@ -43,6 +48,22 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  
+  // Common resolution presets
+  const resolutionPresets = [
+    { value: '480p', label: 'SD (480p)' },
+    { value: '720p', label: 'HD (720p)' },
+    { value: '1080p', label: 'Full HD (1080p)' },
+    { value: '1440p', label: 'QHD (1440p)' },
+    { value: '2160p', label: '4K (2160p)' },
+  ];
+
+  const qualityPresets = [
+    { value: 'Low', label: 'Low Quality' },
+    { value: 'Standard', label: 'Standard Quality' },
+    { value: 'High', label: 'High Quality' },
+    { value: 'Ultra', label: 'Ultra Quality' },
+  ];
 
   const form = useForm<VideoFormData>({
     resolver: zodResolver(videoFormSchema),
@@ -61,6 +82,11 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
       trailer_url: video?.trailer_url || '',
       video_url: video?.video_url || '',
       thumbnail_url: video?.thumbnail_url || '',
+      // Resolution defaults
+      resolution: '720p',
+      quality_label: 'Standard',
+      bitrate: undefined,
+      is_default: true,
     },
   });
 
@@ -105,14 +131,20 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
         : [];
 
       const videoData = {
-        ...data,
+        title: data.title,
+        description: data.description || null,
+        genre: data.genre,
+        content_type: data.content_type,
+        content_status: data.content_status,
+        year: data.year,
+        production_year: data.production_year,
+        duration: data.duration,
+        rating: data.rating,
+        director: data.director || null,
+        cast_members: castArray,
+        trailer_url: data.trailer_url || null,
         video_url: videoUrl,
         thumbnail_url: thumbnailUrl || null,
-        cast_members: castArray,
-        // Convert empty strings to null for optional fields
-        trailer_url: data.trailer_url || null,
-        director: data.director || null,
-        description: data.description || null,
       };
 
       if (video?.id) {
@@ -130,15 +162,34 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
         });
       } else {
         // Create new video
-        const { error } = await supabase
+        const { data: videoResult, error } = await supabase
           .from('videos')
-          .insert([videoData]);
+          .insert([videoData])
+          .select()
+          .single();
 
         if (error) throw error;
 
+        // Create video_sources entry for the uploaded video
+        const videoSourceData = {
+          video_id: videoResult.id,
+          resolution: data.resolution,
+          quality_label: data.quality_label,
+          source_url: videoUrl,
+          bitrate: data.bitrate || null,
+          file_size: videoFile?.size || null,
+          is_default: data.is_default ?? true,
+        };
+
+        const { error: sourceError } = await supabase
+          .from('video_sources')
+          .insert([videoSourceData]);
+
+        if (sourceError) throw sourceError;
+
         toast({
           title: "Video created",
-          description: "The video has been successfully created.",
+          description: "The video has been successfully created with resolution settings.",
         });
       }
 
@@ -448,6 +499,85 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              {/* Resolution Settings */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Monitor className="h-4 w-4" />
+                  <h4 className="text-sm font-medium">Resolution Settings</h4>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="resolution"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Resolution *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select resolution" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {resolutionPresets.map((preset) => (
+                              <SelectItem key={preset.value} value={preset.value}>
+                                {preset.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="quality_label"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Quality Label *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select quality" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {qualityPresets.map((preset) => (
+                              <SelectItem key={preset.value} value={preset.value}>
+                                {preset.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="bitrate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Bitrate (kbps)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="2000"
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
 
               {/* Thumbnail Upload */}
