@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -6,19 +6,27 @@ import { useToast } from '@/hooks/use-toast';
 export const useFavorites = () => {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
-    if (user) {
+    if (user && !fetchedRef.current) {
+      fetchedRef.current = true;
       fetchFavorites();
+    } else if (!user) {
+      fetchedRef.current = false;
+      setFavorites([]);
+      setInitialized(false);
     }
   }, [user]);
 
-  const fetchFavorites = async () => {
-    if (!user) return;
+  const fetchFavorites = useCallback(async () => {
+    if (!user || initialized) return;
 
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('user_favorites')
         .select('video_id')
@@ -26,11 +34,15 @@ export const useFavorites = () => {
 
       if (error) throw error;
 
-      setFavorites(data.map(fav => fav.video_id));
+      setFavorites(data?.map(fav => fav.video_id) || []);
+      setInitialized(true);
     } catch (error) {
       console.error('Error fetching favorites:', error);
+      setFavorites([]);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [user, initialized]);
 
   const addToFavorites = async (videoId: string) => {
     if (!user) {
@@ -115,9 +127,11 @@ export const useFavorites = () => {
   return {
     favorites,
     loading,
+    initialized,
     isFavorite,
     addToFavorites,
     removeFromFavorites,
     toggleFavorite,
+    refetch: fetchFavorites,
   };
 };

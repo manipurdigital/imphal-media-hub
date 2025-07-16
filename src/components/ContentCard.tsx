@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, memo } from 'react';
 import { Play, Plus, ThumbsUp, ChevronDown, Check } from 'lucide-react';
 import VideoPlayer from '@/components/VideoPlayer';
-import { useFavorites } from '@/hooks/useFavorites';
+import { useFavoritesContext } from '@/contexts/FavoritesContext';
 
 interface ContentCardProps {
   id: string;
@@ -24,7 +24,7 @@ interface ContentCardProps {
   trailerUrl?: string;
 }
 
-const ContentCard = ({ 
+const ContentCard = memo(({ 
   id,
   title, 
   image, 
@@ -44,7 +44,7 @@ const ContentCard = ({
   const [isVideoPlayerOpen, setIsVideoPlayerOpen] = useState(false);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const { isFavorite, toggleFavorite, loading: favoritesLoading } = useFavorites();
+  const { isFavorite, toggleFavorite, loading: favoritesLoading } = useFavoritesContext();
 
   const handleMouseEnter = useCallback(() => {
     if (hoverTimeoutRef.current) {
@@ -264,6 +264,6 @@ const ContentCard = ({
       />
     </div>
   );
-};
+});
 
 export default ContentCard;

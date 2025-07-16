@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect, memo } from 'react';
 import { 
   Play, 
   Pause, 
@@ -11,12 +11,15 @@ import {
   SkipForward,
   Loader2,
   Maximize2,
-  Volume1
+  Volume1,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { isYouTubeUrl, extractYouTubeVideoId, getYouTubeEmbedUrl } from '@/utils/youtube';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { useDebounceCallback } from '@/hooks/useDebounce';
 
 interface VideoPlayerProps {
   title: string;
@@ -25,7 +28,7 @@ interface VideoPlayerProps {
   onClose: () => void;
 }
 
-const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => {
+const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(1);
@@ -38,6 +41,8 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [buffered, setBuffered] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [canPlay, setCanPlay] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -123,6 +128,23 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
 
     const handleCanPlay = () => {
       setIsLoading(false);
+      setCanPlay(true);
+      setError(null);
+    };
+
+    const handleError = (e: Event) => {
+      setIsLoading(false);
+      setCanPlay(false);
+      const target = e.target as HTMLVideoElement;
+      const errorMessage = target.error ? 
+        `Video error: ${target.error.message} (Code: ${target.error.code})` : 
+        'Failed to load video. Please check your internet connection and try again.';
+      setError(errorMessage);
+    };
+
+    const handleLoadedData = () => {
+      setIsLoading(false);
+      setCanPlay(true);
     };
 
     const handlePlay = () => {
@@ -143,6 +165,8 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
     video.addEventListener('durationchange', handleDurationChange);
     video.addEventListener('loadstart', handleLoadStart);
     video.addEventListener('canplay', handleCanPlay);
+    video.addEventListener('loadeddata', handleLoadedData);
+    video.addEventListener('error', handleError);
     video.addEventListener('play', handlePlay);
     video.addEventListener('pause', handlePause);
     video.addEventListener('volumechange', handleVolumeChange);
@@ -152,6 +176,8 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
       video.removeEventListener('durationchange', handleDurationChange);
       video.removeEventListener('loadstart', handleLoadStart);
       video.removeEventListener('canplay', handleCanPlay);
+      video.removeEventListener('loadeddata', handleLoadedData);
+      video.removeEventListener('error', handleError);
       video.removeEventListener('play', handlePlay);
       video.removeEventListener('pause', handlePause);
       video.removeEventListener('volumechange', handleVolumeChange);
@@ -322,17 +348,23 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
     }
   };
 
-  const handleSeek = (value: number[]) => {
+  const debouncedSeek = useDebounceCallback((newTime: number) => {
     if (videoRef.current && isMounted && duration && isFinite(duration) && duration > 0) {
-      const newTime = (value[0] / 100) * duration;
       if (isFinite(newTime) && newTime >= 0 && newTime <= duration) {
         try {
           videoRef.current.currentTime = newTime;
-          setCurrentTime(newTime);
         } catch (error) {
           console.warn('Error seeking video:', error);
         }
       }
+    }
+  }, 100);
+
+  const handleSeek = (value: number[]) => {
+    if (duration && isFinite(duration) && duration > 0) {
+      const newTime = (value[0] / 100) * duration;
+      setCurrentTime(newTime); // Immediate UI update
+      debouncedSeek(newTime); // Debounced actual seek
     }
   };
 
@@ -375,21 +407,22 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
   if (!isOpen) return null;
 
   return (
-    <div 
-      ref={containerRef}
-      className="fixed inset-0 bg-black z-50 flex items-center justify-center"
-      onClick={handleClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="video-player-title"
-      aria-describedby="video-player-description"
-    >
-      {/* Video Container */}
+    <ErrorBoundary>
       <div 
-        className="relative w-full h-full"
-        onClick={(e) => e.stopPropagation()}
-        onMouseMove={handleMouseMove}
+        ref={containerRef}
+        className="fixed inset-0 bg-black z-50 flex items-center justify-center"
+        onClick={handleClose}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="video-player-title"
+        aria-describedby="video-player-description"
       >
+        {/* Video Container */}
+        <div 
+          className="relative w-full h-full"
+          onClick={(e) => e.stopPropagation()}
+          onMouseMove={handleMouseMove}
+        >
         {/* Close Button */}
         <Button
           variant="ghost"
@@ -404,6 +437,38 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-40">
             <Loader2 className="w-12 h-12 text-white animate-spin" />
+          </div>
+        )}
+
+        {/* Error Display */}
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-40">
+            <div className="text-center text-white max-w-md mx-4">
+              <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Playback Error</h3>
+              <p className="text-gray-300 mb-4">{error}</p>
+              <div className="flex space-x-3 justify-center">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setError(null);
+                    if (videoRef.current) {
+                      videoRef.current.load();
+                    }
+                  }}
+                  className="text-white border-white/30 hover:bg-white/10"
+                >
+                  Retry
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={handleClose}
+                  className="text-white hover:bg-white/10"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -423,6 +488,9 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
               className="w-full h-full object-contain cursor-pointer"
               onClick={togglePlay}
               onDoubleClick={toggleFullscreen}
+              preload="metadata"
+              crossOrigin="anonymous"
+              playsInline
             >
               <source src={videoUrl} type="video/mp4" />
               Your browser does not support the video tag.
@@ -594,9 +662,10 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
         <div className="absolute top-4 left-4 text-white/70 text-xs">
           <p>Space: Play/Pause | ← →: Seek | ↑ ↓: Volume | F: Fullscreen | M: Mute</p>
         </div>
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
-};
+});
 
 export default VideoPlayer;
