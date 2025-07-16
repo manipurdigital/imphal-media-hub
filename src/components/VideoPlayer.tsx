@@ -855,17 +855,20 @@ Video Status: Marked as CORS-blocked for admin review`;
               onClick={togglePlay}
               onDoubleClick={toggleFullscreen}
               preload="metadata"
-              crossOrigin="anonymous"
               playsInline
+              onError={(e) => {
+                console.error('Video error:', e);
+                setVideoLoadError(`Video failed to load: ${e.currentTarget.error?.message || 'Unknown error'}`);
+              }}
+              onLoadStart={() => {
+                console.log('Video load started');
+                setVideoLoadError(null);
+              }}
+              onCanPlay={() => {
+                console.log('Video can play');
+              }}
             >
               <source src={effectiveVideoUrl} type="video/mp4" />
-              {/* Add additional source formats for better compatibility */}
-              {effectiveVideoUrl.includes('.mp4') && (
-                <source src={effectiveVideoUrl.replace('.mp4', '.webm')} type="video/webm" />
-              )}
-              {effectiveVideoUrl.includes('.mp4') && (
-                <source src={effectiveVideoUrl.replace('.mp4', '.ogg')} type="video/ogg" />
-              )}
               Your browser does not support the video tag.
             </video>
           )
