@@ -69,7 +69,7 @@ const SignupForm = () => {
       } else {
         toast({
           title: 'Account created!',
-          description: 'Welcome to StreamFlix! You can now start streaming.',
+          description: 'Please check your email and click the verification link to complete your signup.',
         });
       }
     } catch (error) {
