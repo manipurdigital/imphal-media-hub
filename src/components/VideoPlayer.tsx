@@ -22,6 +22,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useDebounceCallback } from '@/hooks/useDebounce';
 import { useVideoResolutions } from '@/hooks/useVideoResolutions';
 import { ResolutionSelector } from '@/components/ResolutionSelector';
+import { supabase } from '@/integrations/supabase/client';
 
 interface VideoPlayerProps {
   title: string;
@@ -121,18 +122,48 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  // Update video accessibility status in database
+  const updateVideoAccessibilityStatus = useCallback(async (videoId: string, status: string) => {
+    try {
+      await supabase
+        .from('videos')
+        .update({ 
+          accessibility_status: status,
+          accessibility_checked_at: new Date().toISOString()
+        })
+        .eq('id', videoId);
+    } catch (error) {
+      console.error('Failed to update video accessibility status:', error);
+    }
+  }, []);
+
   // Check if URL is likely to have CORS issues
   const hasLikelyCORSIssues = useCallback((url: string): boolean => {
-    // Google Cloud Storage public URLs typically have CORS restrictions
-    const corsProblematicDomains = [
+    if (!url) return false;
+    
+    // YouTube videos don't have CORS issues as they use iframe embedding
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      return false;
+    }
+    
+    // Supabase hosted videos should work
+    if (url.includes('zzulxowwlqndtrlmfnij.supabase.co')) {
+      return false;
+    }
+    
+    // Check for known problematic domains
+    const problematicDomains = [
       'commondatastorage.googleapis.com',
       'storage.googleapis.com',
-      'cloud.google.com',
-      'amazonaws.com', // Some AWS buckets
-      'cloudfront.net' // Some CloudFront distributions
+      'drive.google.com',
+      's3.amazonaws.com',
+      '.s3.',
+      'cloudfront.net',
+      'dropbox.com',
+      'onedrive.com'
     ];
     
-    return corsProblematicDomains.some(domain => url.includes(domain));
+    return problematicDomains.some(domain => url.includes(domain));
   }, []);
 
   // Video event handlers
@@ -154,8 +185,11 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
       setDuration(video.duration);
     };
 
-    const handleLoadStart = () => {
+    const handleLoadStart = async () => {
       setIsLoading(true);
+      if (isValidVideoId && videoId) {
+        await updateVideoAccessibilityStatus(videoId, 'testing');
+      }
     };
 
     const handleLoadedMetadata = () => {
@@ -166,18 +200,22 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
       console.log('Video metadata loaded - duration:', video.duration);
     };
 
-    const handleCanPlay = () => {
+    const handleCanPlay = async () => {
       setIsLoading(false);
       setCanPlay(true);
       setError(null);
+      if (isValidVideoId && videoId) {
+        await updateVideoAccessibilityStatus(videoId, 'accessible');
+      }
       console.log('Video can play - duration:', video.duration);
     };
 
-    const handleError = (e: Event) => {
+    const handleError = async (e: Event) => {
       setIsLoading(false);
       setCanPlay(false);
       const target = e.target as HTMLVideoElement;
       let errorMessage = 'Failed to load video.';
+      let accessibilityStatus = 'not_found';
       
       if (target.error) {
         switch (target.error.code) {
@@ -201,8 +239,23 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
       // Check if this might be a CORS issue using our detection function
       if (effectiveVideoUrl && !effectiveVideoUrl.includes('youtube.com') && !effectiveVideoUrl.includes('youtu.be')) {
         if (target.error?.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED || hasLikelyCORSIssues(effectiveVideoUrl)) {
-          errorMessage = `Video cannot be played due to CORS restrictions. The video is hosted on ${new URL(effectiveVideoUrl).hostname} which doesn't allow direct video playback from external websites. Please contact the administrator to move the video to a compatible hosting service.`;
+          accessibilityStatus = 'cors_blocked';
+          errorMessage = `This video cannot be played due to CORS restrictions. 
+            
+Technical Info: This video is hosted on an external server that doesn't allow direct playback. The video needs to be configured with proper CORS headers or moved to a compatible hosting service.
+
+Suggested Solutions:
+• Upload the video to Supabase storage for reliable playback
+• Contact the video host to enable CORS for your domain
+• Use a different video hosting service
+
+Video Status: Marked as CORS-blocked for admin review`;
         }
+      }
+      
+      // Update accessibility status in database
+      if (isValidVideoId && videoId) {
+        await updateVideoAccessibilityStatus(videoId, accessibilityStatus);
       }
       
       setError(errorMessage);
@@ -252,7 +305,7 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
       video.removeEventListener('pause', handlePause);
       video.removeEventListener('volumechange', handleVolumeChange);
     };
-  }, [hasLikelyCORSIssues]);
+  }, [hasLikelyCORSIssues, updateVideoAccessibilityStatus, isValidVideoId, videoId]);
 
   // Keyboard shortcuts
   const handleKeyDown = useCallback((e: KeyboardEvent) => {

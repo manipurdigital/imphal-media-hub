@@ -371,6 +371,8 @@ export type Database = {
       }
       videos: {
         Row: {
+          accessibility_checked_at: string | null
+          accessibility_status: string | null
           cast_members: string[] | null
           content_status: Database["public"]["Enums"]["content_status"] | null
           content_type: Database["public"]["Enums"]["content_type"] | null
@@ -379,6 +381,7 @@ export type Database = {
           director: string | null
           duration: number | null
           genre: string
+          hosting_type: string | null
           id: string
           production_year: number | null
           rating: number | null
@@ -392,6 +395,8 @@ export type Database = {
           year: number | null
         }
         Insert: {
+          accessibility_checked_at?: string | null
+          accessibility_status?: string | null
           cast_members?: string[] | null
           content_status?: Database["public"]["Enums"]["content_status"] | null
           content_type?: Database["public"]["Enums"]["content_type"] | null
@@ -400,6 +405,7 @@ export type Database = {
           director?: string | null
           duration?: number | null
           genre: string
+          hosting_type?: string | null
           id?: string
           production_year?: number | null
           rating?: number | null
@@ -413,6 +419,8 @@ export type Database = {
           year?: number | null
         }
         Update: {
+          accessibility_checked_at?: string | null
+          accessibility_status?: string | null
           cast_members?: string[] | null
           content_status?: Database["public"]["Enums"]["content_status"] | null
           content_type?: Database["public"]["Enums"]["content_type"] | null
@@ -421,6 +429,7 @@ export type Database = {
           director?: string | null
           duration?: number | null
           genre?: string
+          hosting_type?: string | null
           id?: string
           production_year?: number | null
           rating?: number | null

@@ -14,6 +14,7 @@ import { CollectionsManagement } from "./pages/admin/CollectionsManagement";
 import { CategoriesManagement } from "./pages/admin/CategoriesManagement";
 import { Analytics } from "./pages/admin/Analytics";
 import { Settings } from "./pages/admin/Settings";
+import VideoAccessibility from "./pages/admin/VideoAccessibility";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import VerificationPending from "./components/auth/VerificationPending";
@@ -54,6 +55,13 @@ const App = () => (
               <AdminRoute>
                 <AdminLayout>
                   <VideoManagement />
+                </AdminLayout>
+              </AdminRoute>
+            } />
+            <Route path="/admin/video-accessibility" element={
+              <AdminRoute>
+                <AdminLayout>
+                  <VideoAccessibility />
                 </AdminLayout>
               </AdminRoute>
             } />

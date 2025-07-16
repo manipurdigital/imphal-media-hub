@@ -6,7 +6,8 @@ import {
   FolderOpen, 
   Tags, 
   Settings,
-  BarChart3
+  BarChart3,
+  Shield
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +21,11 @@ const sidebarItems = [
     title: 'Videos',
     href: '/admin/videos',
     icon: Video,
+  },
+  {
+    title: 'Video Accessibility',
+    href: '/admin/video-accessibility',
+    icon: Shield,
   },
   {
     title: 'Users',
