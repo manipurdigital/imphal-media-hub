@@ -28,7 +28,7 @@ const ContentCard = ({ title, image, rating, year, genre, duration, description,
   const handleMouseLeave = useCallback(() => {
     hoverTimeoutRef.current = setTimeout(() => {
       setIsHovered(false);
-    }, 100);
+    }, 300);
   }, []);
 
   return (
@@ -67,9 +67,7 @@ const ContentCard = ({ title, image, rating, year, genre, duration, description,
       {/* Content Info - Shows on hover */}
       {isHovered && (
         <div 
-          className="absolute top-full left-0 right-0 bg-card border border-border rounded-b-xl p-4 z-20 animate-scale-in shadow-[var(--card-shadow)] pointer-events-auto"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
+          className="absolute top-full left-0 right-0 bg-card border border-border rounded-b-xl p-4 z-20 animate-scale-in shadow-[var(--card-shadow)]"
         >
           <h3 className="font-semibold text-foreground mb-2 line-clamp-1">{title}</h3>
           
