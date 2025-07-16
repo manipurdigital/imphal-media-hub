@@ -46,12 +46,24 @@ const HeroSection = () => {
 
           {/* Action Buttons */}
           <div className="flex items-center space-x-4">
-            <Button className="btn-primary text-lg px-8 py-3">
+            <Button 
+              className="btn-primary text-lg px-8 py-3"
+              onClick={() => {
+                console.log('Playing video...');
+                // TODO: Implement video player functionality
+              }}
+            >
               <Play className="w-5 h-5 mr-2" />
               Play Now
             </Button>
             
-            <Button className="btn-secondary text-lg px-8 py-3">
+            <Button 
+              className="btn-secondary text-lg px-8 py-3"
+              onClick={() => {
+                console.log('Added to My List');
+                // TODO: Implement add to list functionality
+              }}
+            >
               <Plus className="w-5 h-5 mr-2" />
               My List
             </Button>
@@ -59,6 +71,10 @@ const HeroSection = () => {
             <Button 
               variant="ghost" 
               className="text-white hover:text-primary border border-white/30 hover:border-primary px-8 py-3"
+              onClick={() => {
+                console.log('Show more info');
+                // TODO: Implement more info modal
+              }}
             >
               <Info className="w-5 h-5 mr-2" />
               More Info
