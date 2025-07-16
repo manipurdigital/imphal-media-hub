@@ -77,7 +77,7 @@ const HeroSection = () => {
         title="Shadow Hunter"
         isOpen={isVideoPlayerOpen}
         onClose={() => setIsVideoPlayerOpen(false)}
-        videoId="hero-video"
+        videoUrl="https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4"
       />
     </section>
   );

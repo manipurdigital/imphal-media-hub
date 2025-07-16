@@ -53,7 +53,8 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
   const playPromiseRef = useRef<Promise<void> | null>(null);
   
-  // Resolution management
+  // Resolution management - only use if videoId is a valid UUID
+  const isValidVideoId = videoId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(videoId);
   const {
     resolutions,
     currentResolution,
@@ -61,10 +62,10 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
     error: resolutionsError,
     switchResolution,
     hasMultipleResolutions,
-  } = useVideoResolutions(videoId || null);
+  } = useVideoResolutions(isValidVideoId ? videoId : null);
   
-  // Determine effective video URL (current resolution or fallback)
-  const effectiveVideoUrl = hasMultipleResolutions && currentResolution ? currentResolution.source_url : videoUrl;
+  // Determine effective video URL (current resolution or fallback to videoUrl)
+  const effectiveVideoUrl = (hasMultipleResolutions && currentResolution) ? currentResolution.source_url : videoUrl;
   
   const isYouTube = effectiveVideoUrl ? isYouTubeUrl(effectiveVideoUrl) : false;
   const youTubeVideoId = isYouTube ? extractYouTubeVideoId(effectiveVideoUrl!) : null;
@@ -714,14 +715,16 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
               </div>
 
               <div className="flex items-center space-x-2">
-                {/* Resolution Selector */}
-                <ResolutionSelector
-                  resolutions={resolutions}
-                  currentResolution={currentResolution}
-                  onResolutionChange={handleResolutionChange}
-                  isLoading={isResolutionSwitching}
-                  disabled={isYouTube}
-                />
+                {/* Resolution Selector - only show if valid videoId and multiple resolutions */}
+                {isValidVideoId && hasMultipleResolutions && (
+                  <ResolutionSelector
+                    resolutions={resolutions}
+                    currentResolution={currentResolution}
+                    onResolutionChange={handleResolutionChange}
+                    isLoading={isResolutionSwitching}
+                    disabled={isYouTube}
+                  />
+                )}
                 
                 {/* Playback Speed */}
                 <Select value={playbackSpeed.toString()} onValueChange={(value) => {
