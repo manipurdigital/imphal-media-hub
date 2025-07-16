@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { encodeVideoUrl, analyzeVideoUrl } from '@/utils/videoUrl';
 
 export interface VideoResolution {
   id: string;
@@ -9,6 +10,7 @@ export interface VideoResolution {
   bitrate?: number;
   file_size?: number;
   is_default: boolean;
+  processed_url?: string; // URL after encoding/processing
 }
 
 export const useVideoResolutions = (videoId: string | null) => {
@@ -39,10 +41,21 @@ export const useVideoResolutions = (videoId: string | null) => {
           throw error;
         }
 
-        setResolutions(data || []);
+        // Process URLs for better compatibility
+        const processedResolutions = (data || []).map(resolution => {
+          const urlInfo = analyzeVideoUrl(resolution.source_url);
+          const processedUrl = urlInfo.needsEncoding ? encodeVideoUrl(resolution.source_url) : resolution.source_url;
+          
+          return {
+            ...resolution,
+            processed_url: processedUrl
+          };
+        });
+        
+        setResolutions(processedResolutions);
         
         // Set default resolution
-        const defaultResolution = data?.find(r => r.is_default) || data?.[0];
+        const defaultResolution = processedResolutions.find(r => r.is_default) || processedResolutions[0];
         if (defaultResolution) {
           setCurrentResolution(defaultResolution);
         } else {
@@ -62,7 +75,16 @@ export const useVideoResolutions = (videoId: string | null) => {
   }, [videoId]);
 
   const switchResolution = (resolution: VideoResolution) => {
-    setCurrentResolution(resolution);
+    // Process URL when switching resolution
+    const urlInfo = analyzeVideoUrl(resolution.source_url);
+    const processedUrl = urlInfo.needsEncoding ? encodeVideoUrl(resolution.source_url) : resolution.source_url;
+    
+    const processedResolution = {
+      ...resolution,
+      processed_url: processedUrl
+    };
+    
+    setCurrentResolution(processedResolution);
   };
 
   return {
