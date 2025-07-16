@@ -68,6 +68,18 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
   // Determine effective video URL (current resolution or fallback to videoUrl)
   const effectiveVideoUrl = (currentResolution?.source_url) ? currentResolution.source_url : videoUrl;
   
+  // Debug logging
+  console.log('VideoPlayer Debug:', {
+    title,
+    videoId,
+    videoUrl,
+    currentResolution,
+    effectiveVideoUrl,
+    resolutions: resolutions.length,
+    resolutionsLoading,
+    resolutionsError
+  });
+  
   const isYouTube = effectiveVideoUrl ? isYouTubeUrl(effectiveVideoUrl) : false;
   const youTubeVideoId = isYouTube ? extractYouTubeVideoId(effectiveVideoUrl!) : null;
   const youTubeEmbedUrl = youTubeVideoId ? getYouTubeEmbedUrl(youTubeVideoId) : null;
