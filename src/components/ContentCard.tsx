@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Play, Plus, ThumbsUp, ChevronDown } from 'lucide-react';
+import VideoPlayer from '@/components/VideoPlayer';
 
 interface ContentCardProps {
   title: string;
@@ -13,6 +14,7 @@ interface ContentCardProps {
 
 const ContentCard = ({ title, image, rating, year, genre, duration, description }: ContentCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isVideoPlayerOpen, setIsVideoPlayerOpen] = useState(false);
 
   return (
     <div 
@@ -33,10 +35,7 @@ const ContentCard = ({ title, image, rating, year, genre, duration, description 
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center animate-fade-in">
             <button 
               className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-full p-3 hover:bg-white/30 transition-colors"
-              onClick={() => {
-                console.log(`Playing ${title}...`);
-                // TODO: Implement video player functionality
-              }}
+              onClick={() => setIsVideoPlayerOpen(true)}
             >
               <Play className="w-6 h-6 text-white" />
             </button>
@@ -74,10 +73,7 @@ const ContentCard = ({ title, image, rating, year, genre, duration, description 
             <div className="flex items-center space-x-2">
               <button 
                 className="bg-primary rounded-full p-2 hover:bg-primary/80 transition-colors"
-                onClick={() => {
-                  console.log(`Playing ${title}...`);
-                  // TODO: Implement video player functionality
-                }}
+                onClick={() => setIsVideoPlayerOpen(true)}
               >
                 <Play className="w-4 h-4 text-primary-foreground" />
               </button>
@@ -107,6 +103,13 @@ const ContentCard = ({ title, image, rating, year, genre, duration, description 
           </div>
         </div>
       )}
+
+      {/* Video Player */}
+      <VideoPlayer
+        title={title}
+        isOpen={isVideoPlayerOpen}
+        onClose={() => setIsVideoPlayerOpen(false)}
+      />
     </div>
   );
 };

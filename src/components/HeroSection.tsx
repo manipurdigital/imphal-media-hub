@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { Play, Plus, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import VideoPlayer from '@/components/VideoPlayer';
 import heroImage from '@/assets/hero-featured.jpg';
 
 const HeroSection = () => {
+  const [isVideoPlayerOpen, setIsVideoPlayerOpen] = useState(false);
   return (
     <section className="relative h-screen flex items-center justify-start overflow-hidden">
       {/* Background Image */}
@@ -48,10 +51,7 @@ const HeroSection = () => {
           <div className="flex items-center space-x-4">
             <Button 
               className="btn-primary text-lg px-8 py-3"
-              onClick={() => {
-                console.log('Playing video...');
-                // TODO: Implement video player functionality
-              }}
+              onClick={() => setIsVideoPlayerOpen(true)}
             >
               <Play className="w-5 h-5 mr-2" />
               Play Now
@@ -87,6 +87,13 @@ const HeroSection = () => {
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
         <div className="w-1 h-8 bg-white/30 rounded-full" />
       </div>
+
+      {/* Video Player */}
+      <VideoPlayer
+        title="Shadow Hunter"
+        isOpen={isVideoPlayerOpen}
+        onClose={() => setIsVideoPlayerOpen(false)}
+      />
     </section>
   );
 };
