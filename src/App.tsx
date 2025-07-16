@@ -9,6 +9,10 @@ import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { VideoManagement } from "./pages/admin/VideoManagement";
 import { UserManagement } from "./pages/admin/UserManagement";
+import { CollectionsManagement } from "./pages/admin/CollectionsManagement";
+import { CategoriesManagement } from "./pages/admin/CategoriesManagement";
+import { Analytics } from "./pages/admin/Analytics";
+import { Settings } from "./pages/admin/Settings";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import VerificationPending from "./components/auth/VerificationPending";
@@ -53,28 +57,28 @@ const App = () => (
             <Route path="/admin/collections" element={
               <AdminRoute>
                 <AdminLayout>
-                  <div>Collections Management - Coming Soon</div>
+                  <CollectionsManagement />
                 </AdminLayout>
               </AdminRoute>
             } />
             <Route path="/admin/categories" element={
               <AdminRoute>
                 <AdminLayout>
-                  <div>Categories Management - Coming Soon</div>
+                  <CategoriesManagement />
                 </AdminLayout>
               </AdminRoute>
             } />
             <Route path="/admin/analytics" element={
               <AdminRoute>
                 <AdminLayout>
-                  <div>Analytics - Coming Soon</div>
+                  <Analytics />
                 </AdminLayout>
               </AdminRoute>
             } />
             <Route path="/admin/settings" element={
               <AdminRoute>
                 <AdminLayout>
-                  <div>Settings - Coming Soon</div>
+                  <Settings />
                 </AdminLayout>
               </AdminRoute>
             } />
