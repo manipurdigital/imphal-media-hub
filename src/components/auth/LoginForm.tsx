@@ -3,11 +3,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Mail } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -19,6 +20,8 @@ type LoginFormData = z.infer<typeof loginSchema>;
 const LoginForm = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
+  const [lastEmailSent, setLastEmailSent] = useState<string>('');
   const { toast } = useToast();
 
   // Add error boundary for auth context
@@ -47,11 +50,21 @@ const LoginForm = () => {
       const { error } = await signIn(data.email, data.password);
       
       if (error) {
-        toast({
-          title: 'Error',
-          description: error.message || 'Failed to sign in. Please check your credentials.',
-          variant: 'destructive',
-        });
+        // Handle specific error for unverified email
+        if (error.message?.includes('email_not_confirmed') || error.message?.includes('Email not confirmed')) {
+          setLastEmailSent(data.email);
+          toast({
+            title: 'Email not verified',
+            description: 'Please check your email and click the verification link before signing in.',
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: 'Error',
+            description: error.message || 'Failed to sign in. Please check your credentials.',
+            variant: 'destructive',
+          });
+        }
       } else {
         toast({
           title: 'Success',
@@ -86,6 +99,43 @@ const LoginForm = () => {
         description: 'An unexpected error occurred with Google sign in.',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleResendVerificationEmail = async () => {
+    if (!lastEmailSent) return;
+
+    setResendingEmail(true);
+    
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: lastEmailSent,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`
+        }
+      });
+
+      if (error) {
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to resend verification email.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Email sent!',
+          description: 'We\'ve sent a new verification email to your inbox.',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setResendingEmail(false);
     }
   };
 
@@ -183,6 +233,33 @@ const LoginForm = () => {
         )}
       </Button>
     </form>
+
+    {lastEmailSent && (
+      <div className="mt-4 p-4 border rounded-lg bg-muted/50">
+        <p className="text-sm text-muted-foreground mb-3">
+          Need to verify your email? We can send you a new verification link.
+        </p>
+        <Button
+          onClick={handleResendVerificationEmail}
+          variant="outline"
+          size="sm"
+          disabled={resendingEmail}
+          className="w-full"
+        >
+          {resendingEmail ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Sending...
+            </>
+          ) : (
+            <>
+              <Mail className="mr-2 h-4 w-4" />
+              Resend verification email
+            </>
+          )}
+        </Button>
+      </div>
+    )}
     </div>
   );
 };

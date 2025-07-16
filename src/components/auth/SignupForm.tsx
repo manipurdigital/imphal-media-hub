@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +26,7 @@ const SignupForm = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   // Add error boundary for auth context
@@ -67,10 +69,8 @@ const SignupForm = () => {
           });
         }
       } else {
-        toast({
-          title: 'Account created!',
-          description: 'Please check your email and click the verification link to complete your signup.',
-        });
+        // Redirect to verification pending page with email
+        navigate(`/verify-email?email=${encodeURIComponent(data.email)}`);
       }
     } catch (error) {
       toast({
