@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -15,12 +15,32 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
   const [showControls, setShowControls] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  const handleClose = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onClose();
+  }, [onClose]);
+
   useEffect(() => {
     if (isOpen && videoRef.current) {
       videoRef.current.play();
       setIsPlaying(true);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
     }
-  }, [isOpen]);
+
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscapeKey);
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, onClose]);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -47,15 +67,21 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+    <div 
+      className="fixed inset-0 bg-black z-50 flex items-center justify-center"
+      onClick={handleClose}
+    >
       {/* Video Container */}
-      <div className="relative w-full h-full">
+      <div 
+        className="relative w-full h-full"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Close Button */}
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-4 right-4 z-10 text-white hover:bg-white/20"
-          onClick={onClose}
+          className="absolute top-4 right-4 z-[60] text-white hover:bg-white/20 pointer-events-auto"
+          onClick={handleClose}
         >
           <X className="w-6 h-6" />
         </Button>

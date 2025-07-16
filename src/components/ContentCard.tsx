@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Play, Plus, ThumbsUp, ChevronDown } from 'lucide-react';
 import VideoPlayer from '@/components/VideoPlayer';
 
@@ -15,12 +15,26 @@ interface ContentCardProps {
 const ContentCard = ({ title, image, rating, year, genre, duration, description }: ContentCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isVideoPlayerOpen, setIsVideoPlayerOpen] = useState(false);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = useCallback(() => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    setIsHovered(true);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    hoverTimeoutRef.current = setTimeout(() => {
+      setIsHovered(false);
+    }, 100);
+  }, []);
 
   return (
     <div 
       className="content-card relative group min-w-[200px] md:min-w-[250px]"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Thumbnail */}
       <div className="relative aspect-[3/4] overflow-hidden rounded-xl">
@@ -51,7 +65,11 @@ const ContentCard = ({ title, image, rating, year, genre, duration, description 
 
       {/* Content Info - Shows on hover */}
       {isHovered && (
-        <div className="absolute top-full left-0 right-0 bg-card border border-border rounded-b-xl p-4 z-20 animate-scale-in shadow-[var(--card-shadow)]">
+        <div 
+          className="absolute top-full left-0 right-0 bg-card border border-border rounded-b-xl p-4 z-20 animate-scale-in shadow-[var(--card-shadow)] pointer-events-auto"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           <h3 className="font-semibold text-foreground mb-2 line-clamp-1">{title}</h3>
           
           <div className="flex items-center space-x-2 text-xs text-muted-foreground mb-3">
