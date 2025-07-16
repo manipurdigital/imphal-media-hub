@@ -16,7 +16,21 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const Navigation = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const { user, profile, signOut } = useAuth();
+  
+  // Add error boundary for auth context
+  let user = null;
+  let profile = null;
+  let signOut = async () => ({ error: null });
+  
+  try {
+    const auth = useAuth();
+    user = auth.user;
+    profile = auth.profile;
+    signOut = auth.signOut;
+  } catch (error) {
+    console.log('AuthProvider not available, showing unauthenticated state');
+  }
+  
   const { toast } = useToast();
   const navigate = useNavigate();
 
