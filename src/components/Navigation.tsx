@@ -77,18 +77,18 @@ const Navigation = () => {
               <Link to="/" className="text-foreground hover:text-gray-300 transition-colors duration-300 text-sm font-medium">
                 Home
               </Link>
-              <a href="#" className="text-muted-foreground hover:text-gray-300 transition-colors duration-300 text-sm font-medium">
+              <Link to="/tv-shows" className="text-muted-foreground hover:text-gray-300 transition-colors duration-300 text-sm font-medium">
                 TV Shows
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-gray-300 transition-colors duration-300 text-sm font-medium">
+              </Link>
+              <Link to="/movies" className="text-muted-foreground hover:text-gray-300 transition-colors duration-300 text-sm font-medium">
                 Movies
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-gray-300 transition-colors duration-300 text-sm font-medium">
+              </Link>
+              <Link to="/" className="text-muted-foreground hover:text-gray-300 transition-colors duration-300 text-sm font-medium">
                 New & Popular
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-gray-300 transition-colors duration-300 text-sm font-medium">
+              </Link>
+              <Link to="/my-list" className="text-muted-foreground hover:text-gray-300 transition-colors duration-300 text-sm font-medium">
                 My List
-              </a>
+              </Link>
             </div>
           )}
         </div>
@@ -142,8 +142,10 @@ const Navigation = () => {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Account Settings</span>
+                    <Link to="/profile" className="flex items-center w-full">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Account Settings</span>
+                    </Link>
                   </DropdownMenuItem>
                   {userRole === 'admin' && (
                     <DropdownMenuItem>

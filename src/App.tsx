@@ -17,6 +17,10 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import VerificationPending from "./components/auth/VerificationPending";
 import NotFound from "./pages/NotFound";
+import Movies from "./pages/Movies";
+import TVShows from "./pages/TVShows";
+import MyList from "./pages/MyList";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +35,10 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/verify-email" element={<VerificationPending />} />
+            <Route path="/movies" element={<Movies />} />
+            <Route path="/tv-shows" element={<TVShows />} />
+            <Route path="/my-list" element={<MyList />} />
+            <Route path="/profile" element={<Profile />} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={

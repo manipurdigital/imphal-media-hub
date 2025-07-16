@@ -1,8 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Play, Plus, ThumbsUp, ChevronDown } from 'lucide-react';
+import { Play, Plus, ThumbsUp, ChevronDown, Check } from 'lucide-react';
 import VideoPlayer from '@/components/VideoPlayer';
+import { useFavorites } from '@/hooks/useFavorites';
 
 interface ContentCardProps {
+  id: string;
   title: string;
   image: string;
   rating: number;
@@ -23,6 +25,7 @@ interface ContentCardProps {
 }
 
 const ContentCard = ({ 
+  id,
   title, 
   image, 
   rating, 
@@ -41,6 +44,7 @@ const ContentCard = ({
   const [isVideoPlayerOpen, setIsVideoPlayerOpen] = useState(false);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const { isFavorite, toggleFavorite, loading: favoritesLoading } = useFavorites();
 
   const handleMouseEnter = useCallback(() => {
     if (hoverTimeoutRef.current) {
@@ -214,13 +218,15 @@ const ContentCard = ({
               )}
               <button 
                 className="glass-morphism rounded-full p-2 transition-all duration-200 interactive-scale hover:glow-effect"
-                onClick={() => {
-                  console.log(`Added ${title} to My List`);
-                  // TODO: Implement add to list functionality
-                }}
-                title="Add to My List"
+                onClick={() => toggleFavorite(id)}
+                disabled={favoritesLoading}
+                title={isFavorite(id) ? "Remove from My List" : "Add to My List"}
               >
-                <Plus className="w-4 h-4 text-secondary-foreground" />
+                {isFavorite(id) ? (
+                  <Check className="w-4 h-4 text-green-400" />
+                ) : (
+                  <Plus className="w-4 h-4 text-secondary-foreground" />
+                )}
               </button>
               <button 
                 className="glass-morphism rounded-full p-2 transition-all duration-200 interactive-scale hover:glow-effect"
