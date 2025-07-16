@@ -4,12 +4,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Eye, Video } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Plus, Edit, Trash2, Eye, Video, Search, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { VideoForm } from '@/components/admin/VideoForm';
 
 export const VideoManagement = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [showForm, setShowForm] = useState(false);
+  const [editingVideo, setEditingVideo] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
 
   const { data: videos, isLoading } = useQuery({
     queryKey: ['adminVideos'],
@@ -55,6 +64,40 @@ export const VideoManagement = () => {
     }
   };
 
+  const handleEditVideo = (video: any) => {
+    setEditingVideo(video);
+    setShowForm(true);
+  };
+
+  const handleAddVideo = () => {
+    setEditingVideo(null);
+    setShowForm(true);
+  };
+
+  const handleFormSuccess = () => {
+    setShowForm(false);
+    setEditingVideo(null);
+    queryClient.invalidateQueries({ queryKey: ['adminVideos'] });
+  };
+
+  const handleFormCancel = () => {
+    setShowForm(false);
+    setEditingVideo(null);
+  };
+
+  // Filter videos based on search and filters
+  const filteredVideos = videos?.filter((video) => {
+    const matchesSearch = !searchTerm || 
+      video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      video.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      video.genre.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || video.content_status === statusFilter;
+    const matchesType = typeFilter === 'all' || video.content_type === typeFilter;
+    
+    return matchesSearch && matchesStatus && matchesType;
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -70,14 +113,49 @@ export const VideoManagement = () => {
           <h1 className="text-3xl font-bold text-foreground">Video Management</h1>
           <p className="text-muted-foreground">Manage your video content library</p>
         </div>
-        <Button className="flex items-center gap-2">
+        <Button onClick={handleAddVideo} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
           Add Video
         </Button>
       </div>
 
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search videos by title, description, or genre..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="published">Published</SelectItem>
+            <SelectItem value="archived">Archived</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Filter by type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="movie">Movie</SelectItem>
+            <SelectItem value="series">Series</SelectItem>
+            <SelectItem value="documentary">Documentary</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="grid gap-4">
-        {videos?.map((video) => (
+        {filteredVideos?.map((video) => (
           <Card key={video.id}>
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -117,7 +195,11 @@ export const VideoManagement = () => {
                   <Button variant="outline" size="sm">
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleEditVideo(video)}
+                  >
                     <Edit className="h-4 w-4" />
                   </Button>
                   <Button 
@@ -135,7 +217,29 @@ export const VideoManagement = () => {
         ))}
       </div>
 
-      {!videos?.length && (
+      {!filteredVideos?.length && videos?.length ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center h-64">
+            <div className="h-12 w-12 bg-muted rounded-lg flex items-center justify-center mb-4">
+              <Filter className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-medium mb-2">No videos match your filters</h3>
+            <p className="text-muted-foreground text-center mb-4">
+              Try adjusting your search terms or filters to find videos.
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSearchTerm('');
+                setStatusFilter('all');
+                setTypeFilter('all');
+              }}
+            >
+              Clear Filters
+            </Button>
+          </CardContent>
+        </Card>
+      ) : !videos?.length ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center h-64">
             <div className="h-12 w-12 bg-muted rounded-lg flex items-center justify-center mb-4">
@@ -145,13 +249,27 @@ export const VideoManagement = () => {
             <p className="text-muted-foreground text-center mb-4">
               Get started by adding your first video to the platform.
             </p>
-            <Button>
+            <Button onClick={handleAddVideo}>
               <Plus className="h-4 w-4 mr-2" />
               Add Video
             </Button>
           </CardContent>
         </Card>
-      )}
+      ) : null}
+
+      {/* Video Form Dialog */}
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingVideo ? 'Edit Video' : 'Add New Video'}</DialogTitle>
+          </DialogHeader>
+          <VideoForm
+            video={editingVideo}
+            onSuccess={handleFormSuccess}
+            onCancel={handleFormCancel}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
