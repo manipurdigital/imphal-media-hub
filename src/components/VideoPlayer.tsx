@@ -354,14 +354,21 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
   };
 
   const handleSeek = (value: number[]) => {
-    if (videoRef.current && isMounted && duration > 0 && canPlay) {
-      const newTime = (value[0] / 100) * duration;
-      if (isFinite(newTime) && newTime >= 0 && newTime <= duration) {
-        try {
-          videoRef.current.currentTime = newTime;
-        } catch (error) {
-          console.warn('Error seeking video:', error);
-        }
+    const video = videoRef.current;
+    if (!video || !isMounted || !canPlay || !duration || duration <= 0) {
+      console.log('Seek blocked - video:', !!video, 'mounted:', isMounted, 'canPlay:', canPlay, 'duration:', duration);
+      return;
+    }
+    
+    const newTime = (value[0] / 100) * duration;
+    console.log('Seeking to:', newTime, 'seconds (', value[0], '% of', duration, 'seconds)');
+    
+    if (isFinite(newTime) && newTime >= 0 && newTime <= duration) {
+      try {
+        video.currentTime = newTime;
+        console.log('Successfully set video time to:', video.currentTime);
+      } catch (error) {
+        console.error('Error seeking video:', error);
       }
     }
   };
@@ -606,22 +613,29 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
               <div className="flex items-center space-x-2">
                 {/* Playback Speed */}
                 <Select value={playbackSpeed.toString()} onValueChange={(value) => {
+                  console.log('Playback speed selector clicked, value:', value);
                   const speed = Number(value);
+                  console.log('Setting playback speed to:', speed);
                   setPlaybackSpeed(speed);
+                  
+                  // Ensure video element exists and set playback rate immediately
                   if (videoRef.current) {
                     videoRef.current.playbackRate = speed;
+                    console.log('Video playback rate set to:', videoRef.current.playbackRate);
+                  } else {
+                    console.warn('Video ref not available when setting playback rate');
                   }
                 }}>
-                  <SelectTrigger className="w-16 h-8 text-white border-white/30 bg-black/50 hover:bg-black/70 z-50">
+                  <SelectTrigger className="w-16 h-8 text-white border-white/30 bg-black/90 hover:bg-black/70 focus:ring-2 focus:ring-white/50 z-50">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-black border-white/30 z-[60]">
-                    <SelectItem value="0.5" className="text-white hover:bg-white/20 focus:bg-white/20">0.5x</SelectItem>
-                    <SelectItem value="0.75" className="text-white hover:bg-white/20 focus:bg-white/20">0.75x</SelectItem>
-                    <SelectItem value="1" className="text-white hover:bg-white/20 focus:bg-white/20">1x</SelectItem>
-                    <SelectItem value="1.25" className="text-white hover:bg-white/20 focus:bg-white/20">1.25x</SelectItem>
-                    <SelectItem value="1.5" className="text-white hover:bg-white/20 focus:bg-white/20">1.5x</SelectItem>
-                    <SelectItem value="2" className="text-white hover:bg-white/20 focus:bg-white/20">2x</SelectItem>
+                  <SelectContent className="bg-black/95 border-white/30 text-white z-[60]">
+                    <SelectItem value="0.5" className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer">0.5x</SelectItem>
+                    <SelectItem value="0.75" className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer">0.75x</SelectItem>
+                    <SelectItem value="1" className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer">1x</SelectItem>
+                    <SelectItem value="1.25" className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer">1.25x</SelectItem>
+                    <SelectItem value="1.5" className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer">1.5x</SelectItem>
+                    <SelectItem value="2" className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer">2x</SelectItem>
                   </SelectContent>
                 </Select>
 
