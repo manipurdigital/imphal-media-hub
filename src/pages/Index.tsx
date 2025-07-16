@@ -6,6 +6,10 @@ import SearchBar from '@/components/SearchBar';
 import { useVideoSearch, VideoSearchResult } from '@/hooks/useVideoSearch';
 import { useCollections } from '@/hooks/useCollections';
 import { useCategories } from '@/hooks/useCategories';
+import KangleiFlixOriginalsSection from '@/components/KangleiFlixOriginalsSection';
+import TrendingSection from '@/components/TrendingSection';
+import RecentlyAddedSection from '@/components/RecentlyAddedSection';
+import TopRatedSection from '@/components/TopRatedSection';
 
 interface ContentItem {
   id: string;
@@ -182,15 +186,21 @@ const Index = () => {
         ) : (
           // Home Page Content
           <>
-            {/* Netflix-Style Content Sections */}
+            {/* Enhanced Netflix-Style Sections */}
+            <KangleiFlixOriginalsSection />
+            <TrendingSection />
+            <RecentlyAddedSection />
+            <TopRatedSection />
+            
+            {/* Content by Type */}
             {movieVideos.length > 0 && (
               <ContentCarousel title="Movies" items={movieVideos} />
             )}
             {seriesVideos.length > 0 && (
-              <ContentCarousel title="TV Shows" items={seriesVideos} />
+              <ContentCarousel title="TV Shows & Series" items={seriesVideos} />
             )}
             {documentaryVideos.length > 0 && (
-              <ContentCarousel title="Documentaries" items={documentaryVideos} />
+              <ContentCarousel title="Documentaries & Specials" items={documentaryVideos} />
             )}
 
             {/* Content by Category */}
@@ -198,15 +208,10 @@ const Index = () => {
               <ContentCarousel title="Action & Adventure" items={actionVideos} />
             )}
             {comedyVideos.length > 0 && (
-              <ContentCarousel title="Comedy" items={comedyVideos} />
+              <ContentCarousel title="Comedy & Laughs" items={comedyVideos} />
             )}
             {dramaVideos.length > 0 && (
-              <ContentCarousel title="Drama" items={dramaVideos} />
-            )}
-
-            {/* Trending Now */}
-            {allVideos.length > 0 && (
-              <ContentCarousel title="Trending Now" items={allVideos.slice(0, 10)} />
+              <ContentCarousel title="Drama & Thrillers" items={dramaVideos} />
             )}
             
             {videos.length === 0 && (
