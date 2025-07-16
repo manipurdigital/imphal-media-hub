@@ -338,17 +338,26 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
       setCurrentTime(0);
       setIsLoading(true);
       
-      // Set initial properties
-      video.volume = volume;
-      video.muted = isMuted;
-      video.playbackRate = playbackSpeed;
-      
       // Force load video metadata
       video.load();
       
       console.log('Video load() called');
     }
-  }, [isOpen, videoUrl, isYouTube, volume, isMuted, playbackSpeed]);
+  }, [isOpen, videoUrl, isYouTube]);
+
+  // Set initial video properties when modal opens (separate from initialization)
+  useEffect(() => {
+    if (isOpen && videoRef.current && videoUrl && !isYouTube) {
+      const video = videoRef.current;
+      
+      // Set initial properties without triggering re-initialization
+      video.volume = volume;
+      video.muted = isMuted;
+      video.playbackRate = playbackSpeed;
+      
+      console.log('Set initial video properties - volume:', volume, 'muted:', isMuted, 'playbackRate:', playbackSpeed);
+    }
+  }, [isOpen, videoUrl, isYouTube]);
 
   const togglePlay = () => {
     if (videoRef.current && isMounted) {
