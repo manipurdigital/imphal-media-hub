@@ -324,7 +324,7 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
     }
   }, [playbackSpeed]);
 
-  // Initialize video when modal opens
+  // Initialize video when modal opens (only when these core dependencies change)
   useEffect(() => {
     if (isOpen && videoRef.current && videoUrl && !isYouTube) {
       const video = videoRef.current;
@@ -338,24 +338,15 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
       setCurrentTime(0);
       setIsLoading(true);
       
-      // Force load video metadata
-      video.load();
-      
-      console.log('Video load() called');
-    }
-  }, [isOpen, videoUrl, isYouTube]);
-
-  // Set initial video properties when modal opens (separate from initialization)
-  useEffect(() => {
-    if (isOpen && videoRef.current && videoUrl && !isYouTube) {
-      const video = videoRef.current;
-      
-      // Set initial properties without triggering re-initialization
+      // Set initial properties immediately
       video.volume = volume;
       video.muted = isMuted;
       video.playbackRate = playbackSpeed;
       
-      console.log('Set initial video properties - volume:', volume, 'muted:', isMuted, 'playbackRate:', playbackSpeed);
+      // Force load video metadata
+      video.load();
+      
+      console.log('Video initialized with properties - volume:', volume, 'muted:', isMuted, 'playbackRate:', playbackSpeed);
     }
   }, [isOpen, videoUrl, isYouTube]);
 
