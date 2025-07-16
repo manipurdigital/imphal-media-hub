@@ -37,10 +37,12 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
   const [showSettings, setShowSettings] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [buffered, setBuffered] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+  const playPromiseRef = useRef<Promise<void> | null>(null);
   
   const isYouTube = videoUrl ? isYouTubeUrl(videoUrl) : false;
   const youTubeVideoId = isYouTube ? extractYouTubeVideoId(videoUrl!) : null;
@@ -66,6 +68,21 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
 
   const handleClose = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
+    setIsMounted(false);
+    
+    // Cancel any pending play promise
+    if (playPromiseRef.current) {
+      playPromiseRef.current.catch(() => {
+        // Ignore AbortError when closing
+      });
+      playPromiseRef.current = null;
+    }
+    
+    // Reset video state
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setIsLoading(false);
+    
     onClose();
   }, [onClose]);
 
@@ -154,7 +171,7 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
         break;
       case 'ArrowLeft':
         e.preventDefault();
-        if (isFinite(video.duration) && video.duration > 0) {
+        if (video && isMounted && isFinite(video.duration) && video.duration > 0) {
           const newTime = Math.max(0, video.currentTime - 10);
           if (isFinite(newTime)) {
             try {
@@ -167,7 +184,7 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
         break;
       case 'ArrowRight':
         e.preventDefault();
-        if (isFinite(video.duration) && video.duration > 0) {
+        if (video && isMounted && isFinite(video.duration) && video.duration > 0) {
           const newTime = Math.min(video.duration, video.currentTime + 10);
           if (isFinite(newTime)) {
             try {
@@ -202,16 +219,33 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
         }
         break;
     }
-  }, [isOpen, isFullscreen, onClose]);
+  }, [isOpen, isMounted, isFullscreen, onClose]);
 
   useEffect(() => {
     if (isOpen) {
+      setIsMounted(true);
       document.addEventListener('keydown', handleKeyDown);
       document.addEventListener('mousemove', handleMouseMove);
       document.body.style.overflow = 'hidden';
       resetControlsTimeout();
     } else {
+      setIsMounted(false);
       document.body.style.overflow = 'unset';
+      
+      // Cancel any pending play promise when closing
+      if (playPromiseRef.current) {
+        playPromiseRef.current.catch(() => {
+          // Ignore AbortError when closing
+        });
+        playPromiseRef.current = null;
+      }
+      
+      // Reset states
+      setIsPlaying(false);
+      setCurrentTime(0);
+      setDuration(0);
+      setIsLoading(false);
+      setBuffered(0);
     }
 
     return () => {
@@ -220,6 +254,14 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
       document.body.style.overflow = 'unset';
       if (controlsTimeoutRef.current) {
         clearTimeout(controlsTimeoutRef.current);
+      }
+      
+      // Cancel any pending play promise on cleanup
+      if (playPromiseRef.current) {
+        playPromiseRef.current.catch(() => {
+          // Ignore AbortError on cleanup
+        });
+        playPromiseRef.current = null;
       }
     };
   }, [isOpen, handleKeyDown, handleMouseMove, resetControlsTimeout]);
@@ -244,19 +286,32 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
   }, [playbackSpeed]);
 
   const togglePlay = () => {
-    if (videoRef.current) {
+    if (videoRef.current && isMounted) {
       try {
         if (isPlaying) {
           videoRef.current.pause();
+          playPromiseRef.current = null;
         } else {
-          videoRef.current.play().catch(error => {
-            console.warn('Error playing video:', error);
-            setIsLoading(false);
-          });
+          setIsLoading(true);
+          playPromiseRef.current = videoRef.current.play();
+          playPromiseRef.current
+            .then(() => {
+              if (isMounted) {
+                setIsLoading(false);
+              }
+            })
+            .catch(error => {
+              if (isMounted && error.name !== 'AbortError') {
+                console.warn('Error playing video:', error);
+                setIsLoading(false);
+              }
+            });
         }
       } catch (error) {
-        console.warn('Error toggling play state:', error);
-        setIsLoading(false);
+        if (isMounted) {
+          console.warn('Error toggling play state:', error);
+          setIsLoading(false);
+        }
       }
     }
   };
@@ -268,7 +323,7 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
   };
 
   const handleSeek = (value: number[]) => {
-    if (videoRef.current && duration && isFinite(duration) && duration > 0) {
+    if (videoRef.current && isMounted && duration && isFinite(duration) && duration > 0) {
       const newTime = (value[0] / 100) * duration;
       if (isFinite(newTime) && newTime >= 0) {
         try {
@@ -288,7 +343,7 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
   };
 
   const skip = (seconds: number) => {
-    if (videoRef.current && duration && isFinite(duration)) {
+    if (videoRef.current && isMounted && duration && isFinite(duration)) {
       const newTime = Math.max(0, Math.min(duration, videoRef.current.currentTime + seconds));
       if (isFinite(newTime)) {
         try {
