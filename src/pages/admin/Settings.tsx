@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,8 +6,39 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Settings as SettingsIcon, Shield, Database, Mail, Bell } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export const Settings = () => {
+  const { toast } = useToast();
+  
+  const [settings, setSettings] = useState({
+    platformName: 'KANGLEIPAK',
+    platformDescription: 'Premium OTT Streaming Platform',
+    maintenanceMode: false,
+    requireVerification: true,
+    twoFactor: false,
+    passwordStrength: true,
+    emailNotifications: true,
+    newUserAlerts: true,
+    contentAlerts: false,
+  });
+
+  const handleInputChange = (key: string, value: string | boolean) => {
+    setSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const handleSave = () => {
+    // Here you would typically save to your backend/database
+    console.log('Saving settings:', settings);
+    
+    toast({
+      title: "Settings saved",
+      description: "Your settings have been successfully updated.",
+    });
+  };
   return (
     <div className="space-y-6">
       <div>
@@ -26,15 +58,27 @@ export const Settings = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="platform-name">Platform Name</Label>
-              <Input id="platform-name" defaultValue="KANGLEIPAK" />
+              <Input 
+                id="platform-name" 
+                value={settings.platformName}
+                onChange={(e) => handleInputChange('platformName', e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="platform-description">Description</Label>
-              <Input id="platform-description" defaultValue="Premium OTT Streaming Platform" />
+              <Input 
+                id="platform-description" 
+                value={settings.platformDescription}
+                onChange={(e) => handleInputChange('platformDescription', e.target.value)}
+              />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="maintenance-mode">Maintenance Mode</Label>
-              <Switch id="maintenance-mode" />
+              <Switch 
+                id="maintenance-mode" 
+                checked={settings.maintenanceMode}
+                onCheckedChange={(checked) => handleInputChange('maintenanceMode', checked)}
+              />
             </div>
           </CardContent>
         </Card>
@@ -50,15 +94,27 @@ export const Settings = () => {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <Label htmlFor="require-verification">Require Email Verification</Label>
-              <Switch id="require-verification" defaultChecked />
+              <Switch 
+                id="require-verification" 
+                checked={settings.requireVerification}
+                onCheckedChange={(checked) => handleInputChange('requireVerification', checked)}
+              />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="two-factor">Two-Factor Authentication</Label>
-              <Switch id="two-factor" />
+              <Switch 
+                id="two-factor" 
+                checked={settings.twoFactor}
+                onCheckedChange={(checked) => handleInputChange('twoFactor', checked)}
+              />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="password-strength">Strong Password Requirements</Label>
-              <Switch id="password-strength" defaultChecked />
+              <Switch 
+                id="password-strength" 
+                checked={settings.passwordStrength}
+                onCheckedChange={(checked) => handleInputChange('passwordStrength', checked)}
+              />
             </div>
           </CardContent>
         </Card>
@@ -74,15 +130,27 @@ export const Settings = () => {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <Label htmlFor="email-notifications">Email Notifications</Label>
-              <Switch id="email-notifications" defaultChecked />
+              <Switch 
+                id="email-notifications" 
+                checked={settings.emailNotifications}
+                onCheckedChange={(checked) => handleInputChange('emailNotifications', checked)}
+              />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="new-user-alerts">New User Alerts</Label>
-              <Switch id="new-user-alerts" defaultChecked />
+              <Switch 
+                id="new-user-alerts" 
+                checked={settings.newUserAlerts}
+                onCheckedChange={(checked) => handleInputChange('newUserAlerts', checked)}
+              />
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="content-alerts">Content Upload Alerts</Label>
-              <Switch id="content-alerts" />
+              <Switch 
+                id="content-alerts" 
+                checked={settings.contentAlerts}
+                onCheckedChange={(checked) => handleInputChange('contentAlerts', checked)}
+              />
             </div>
           </CardContent>
         </Card>
@@ -117,7 +185,7 @@ export const Settings = () => {
       </div>
 
       <div className="flex justify-end">
-        <Button>Save Settings</Button>
+        <Button onClick={handleSave}>Save Settings</Button>
       </div>
     </div>
   );
