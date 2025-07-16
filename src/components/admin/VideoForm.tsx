@@ -12,6 +12,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Upload, X, FileVideo, Image, Monitor } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { isYouTubeUrl } from '@/utils/youtube';
+import { isVimeoUrl } from '@/utils/vimeo';
+import { analyzeVideoUrl } from '@/utils/videoUrl';
 
 const videoFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -26,7 +29,14 @@ const videoFormSchema = z.object({
   director: z.string().optional(),
   cast_members: z.string().optional(), // We'll convert this to array
   trailer_url: z.string().url().optional().or(z.literal("")),
-  video_url: z.string().min(1, "Video URL is required"),
+  video_url: z.string().min(1, "Video URL is required").refine((url) => {
+    if (!url) return false;
+    // Allow file:// URLs for file uploads
+    if (url.startsWith('file://')) return true;
+    // Validate URL format and supported hosting
+    const urlInfo = analyzeVideoUrl(url);
+    return urlInfo.isValid;
+  }, "Please provide a valid video URL (YouTube, Vimeo, or direct video file)"),
   thumbnail_url: z.string().optional(),
   // Resolution fields
   resolution: z.string().min(1, "Resolution is required"),
@@ -231,6 +241,19 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
       }
       setThumbnailFile(file);
       form.setValue('thumbnail_url', `file://${file.name}`);
+    }
+  };
+
+  const handleUrlChange = (value: string) => {
+    // Auto-detect hosting type and provide helpful feedback
+    if (value) {
+      const urlInfo = analyzeVideoUrl(value);
+      
+      if (urlInfo.type === 'youtube' || urlInfo.type === 'vimeo') {
+        // For YouTube and Vimeo, we don't need resolution settings
+        form.setValue('resolution', '720p');
+        form.setValue('quality_label', 'Standard');
+      }
     }
   };
 
@@ -463,12 +486,19 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
                   control={form.control}
                   name="video_url"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Video File *</FormLabel>
-                      <div className="flex gap-2">
-                        <FormControl>
-                          <Input placeholder="Video URL or upload file" {...field} />
-                        </FormControl>
+                      <FormItem>
+                        <FormLabel>Video File * (URL or Upload)</FormLabel>
+                        <div className="flex gap-2">
+                          <FormControl>
+                            <Input 
+                              placeholder="https://youtube.com/watch?v=... or https://vimeo.com/... or upload file" 
+                              {...field} 
+                              onChange={(e) => {
+                                field.onChange(e);
+                                handleUrlChange(e.target.value);
+                              }}
+                            />
+                          </FormControl>
                         <div className="relative">
                           <input
                             type="file"
@@ -482,23 +512,43 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
                           </Button>
                         </div>
                       </div>
-                      {videoFile && (
-                        <Badge variant="secondary" className="flex items-center gap-2 w-fit">
-                          <FileVideo className="h-3 w-3" />
-                          {videoFile.name}
-                          <X 
-                            className="h-3 w-3 cursor-pointer" 
-                            onClick={() => {
-                              setVideoFile(null);
-                              form.setValue('video_url', '');
-                            }}
-                          />
-                        </Badge>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        {videoFile && (
+                          <Badge variant="secondary" className="flex items-center gap-2 w-fit">
+                            <FileVideo className="h-3 w-3" />
+                            {videoFile.name}
+                            <X 
+                              className="h-3 w-3 cursor-pointer" 
+                              onClick={() => {
+                                setVideoFile(null);
+                                form.setValue('video_url', '');
+                              }}
+                            />
+                          </Badge>
+                        )}
+                        
+                        {/* Show video type indicator */}
+                        {field.value && !field.value.startsWith('file://') && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Monitor className="h-4 w-4" />
+                            {(() => {
+                              const urlInfo = analyzeVideoUrl(field.value);
+                              switch (urlInfo.type) {
+                                case 'youtube':
+                                  return <span className="text-red-600">YouTube Video</span>;
+                                case 'vimeo':
+                                  return <span className="text-blue-600">Vimeo Video</span>;
+                                case 'supabase':
+                                  return <span className="text-green-600">Supabase Storage</span>;
+                                default:
+                                  return <span className="text-gray-600">External Video</span>;
+                              }
+                            })()}
+                          </div>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
               </div>
 
               {/* Resolution Settings */}
