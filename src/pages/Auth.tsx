@@ -1,22 +1,37 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginForm from '@/components/auth/LoginForm';
 import SignupForm from '@/components/auth/SignupForm';
+import ResetPasswordForm from '@/components/auth/ResetPasswordForm';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Auth = () => {
-  const [activeTab, setActiveTab] = useState('login');
+  const [searchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabParam === 'reset-password' ? 'reset-password' : (tabParam || 'login'));
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect authenticated users to home
+  // Update active tab when URL parameters change
   useEffect(() => {
-    if (user && !loading) {
+    const newTab = searchParams.get('tab');
+    if (newTab === 'reset-password') {
+      setActiveTab('reset-password');
+    } else if (newTab === 'signup') {
+      setActiveTab('signup');
+    } else {
+      setActiveTab('login');
+    }
+  }, [searchParams]);
+
+  // Redirect authenticated users to home (except when resetting password)
+  useEffect(() => {
+    if (user && !loading && activeTab !== 'reset-password') {
       navigate('/', { replace: true });
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, activeTab]);
 
   if (loading) {
     return (
@@ -37,21 +52,24 @@ const Auth = () => {
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">
-              {activeTab === 'login' ? 'Welcome Back' : 'Join StreamFlix'}
+              {activeTab === 'login' && 'Welcome Back'}
+              {activeTab === 'signup' && 'Join StreamFlix'}
+              {activeTab === 'reset-password' && 'Reset Password'}
             </CardTitle>
             <CardDescription className="text-center">
-              {activeTab === 'login' 
-                ? 'Sign in to your account to continue watching'
-                : 'Create an account to start streaming'
-              }
+              {activeTab === 'login' && 'Sign in to your account to continue watching'}
+              {activeTab === 'signup' && 'Create an account to start streaming'}
+              {activeTab === 'reset-password' && 'Enter your new password below'}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              </TabsList>
+              {activeTab !== 'reset-password' && (
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="login">Sign In</TabsTrigger>
+                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                </TabsList>
+              )}
               
               <TabsContent value="login" className="mt-6">
                 <LoginForm />
@@ -59,6 +77,10 @@ const Auth = () => {
               
               <TabsContent value="signup" className="mt-6">
                 <SignupForm />
+              </TabsContent>
+              
+              <TabsContent value="reset-password" className="mt-6">
+                <ResetPasswordForm />
               </TabsContent>
             </Tabs>
           </CardContent>
