@@ -10,9 +10,10 @@ interface ContentCardProps {
   genre: string;
   duration: string;
   description?: string;
+  videoUrl?: string;
 }
 
-const ContentCard = ({ title, image, rating, year, genre, duration, description }: ContentCardProps) => {
+const ContentCard = ({ title, image, rating, year, genre, duration, description, videoUrl }: ContentCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isVideoPlayerOpen, setIsVideoPlayerOpen] = useState(false);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -125,6 +126,7 @@ const ContentCard = ({ title, image, rating, year, genre, duration, description 
       {/* Video Player */}
       <VideoPlayer
         title={title}
+        videoUrl={videoUrl}
         isOpen={isVideoPlayerOpen}
         onClose={() => setIsVideoPlayerOpen(false)}
       />

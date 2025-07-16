@@ -1,174 +1,97 @@
+import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import HeroSection from '@/components/HeroSection';
 import ContentCarousel from '@/components/ContentCarousel';
+import { supabase } from '@/integrations/supabase/client';
 
-// Import movie images
-import movie1 from '@/assets/movie-1.jpg';
-import movie2 from '@/assets/movie-2.jpg';
-import movie3 from '@/assets/movie-3.jpg';
-import movie4 from '@/assets/movie-4.jpg';
-import movie5 from '@/assets/movie-5.jpg';
+interface Video {
+  id: string;
+  title: string;
+  description: string | null;
+  video_url: string;
+  thumbnail_url: string | null;
+  duration: number | null;
+  genre: string;
+  year: number | null;
+  rating: number | null;
+}
+
+interface ContentItem {
+  id: string;
+  title: string;
+  image: string;
+  rating: number;
+  year: number;
+  genre: string;
+  duration: string;
+  description: string;
+  videoUrl?: string;
+}
 
 const Index = () => {
-  // Sample content data
-  const trendingContent = [
-    {
-      id: '1',
-      title: 'Cyber Nexus',
-      image: movie1,
-      rating: 8.7,
-      year: 2024,
-      genre: 'Sci-Fi',
-      duration: '2h 15m',
-      description: 'A thrilling journey through a dystopian future where technology and humanity collide.'
-    },
-    {
-      id: '2',
-      title: 'Mystic Realm',
-      image: movie2,
-      rating: 9.1,
-      year: 2024,
-      genre: 'Fantasy',
-      duration: '2h 42m',
-      description: 'An epic fantasy adventure through magical realms filled with wonder and danger.'
-    },
-    {
-      id: '3',
-      title: 'Endless Love',
-      image: movie3,
-      rating: 8.2,
-      year: 2024,
-      genre: 'Romance',
-      duration: '1h 58m',
-      description: 'A heartwarming love story that transcends time and challenges.'
-    },
-    {
-      id: '4',
-      title: 'Speed Fury',
-      image: movie4,
-      rating: 8.9,
-      year: 2024,
-      genre: 'Action',
-      duration: '2h 8m',
-      description: 'High-octane action with breathtaking chase sequences and explosive stunts.'
-    },
-    {
-      id: '5',
-      title: 'Dark Manor',
-      image: movie5,
-      rating: 8.4,
-      year: 2024,
-      genre: 'Horror',
-      duration: '1h 47m',
-      description: 'A spine-chilling horror experience that will keep you on the edge of your seat.'
-    }
-  ];
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const popularContent = [
-    {
-      id: '6',
-      title: 'Quantum Leap',
-      image: movie1,
-      rating: 8.8,
-      year: 2023,
-      genre: 'Sci-Fi',
-      duration: '2h 22m',
-      description: 'Time-traveling adventure with mind-bending plot twists.'
-    },
-    {
-      id: '7',
-      title: 'Dragon\'s Quest',
-      image: movie2,
-      rating: 9.0,
-      year: 2023,
-      genre: 'Fantasy',
-      duration: '2h 35m',
-      description: 'Epic tale of heroes and dragons in a magical world.'
-    },
-    {
-      id: '8',
-      title: 'Heart of Gold',
-      image: movie3,
-      rating: 8.3,
-      year: 2023,
-      genre: 'Romance',
-      duration: '2h 1m',
-      description: 'A touching romance that explores the depths of human connection.'
-    },
-    {
-      id: '9',
-      title: 'Thunder Strike',
-      image: movie4,
-      rating: 8.6,
-      year: 2023,
-      genre: 'Action',
-      duration: '1h 54m',
-      description: 'Intense action thriller with spectacular fight sequences.'
-    },
-    {
-      id: '10',
-      title: 'Haunted Dreams',
-      image: movie5,
-      rating: 8.1,
-      year: 2023,
-      genre: 'Horror',
-      duration: '1h 39m',
-      description: 'Psychological horror that blurs the line between dreams and reality.'
-    }
-  ];
+  useEffect(() => {
+    fetchVideos();
+  }, []);
 
-  const newReleases = [
-    {
-      id: '11',
-      title: 'Stellar Odyssey',
-      image: movie1,
-      rating: 8.5,
-      year: 2024,
-      genre: 'Sci-Fi',
-      duration: '2h 18m',
-      description: 'A space exploration epic that pushes the boundaries of imagination.'
-    },
-    {
-      id: '12',
-      title: 'Enchanted Forest',
-      image: movie2,
-      rating: 8.9,
-      year: 2024,
-      genre: 'Fantasy',
-      duration: '2h 11m',
-      description: 'Magical creatures and ancient secrets await in this enchanting tale.'
-    },
-    {
-      id: '13',
-      title: 'First Love',
-      image: movie3,
-      rating: 8.0,
-      year: 2024,
-      genre: 'Romance',
-      duration: '1h 52m',
-      description: 'A beautiful story of young love and the challenges of growing up.'
-    },
-    {
-      id: '14',
-      title: 'Maximum Impact',
-      image: movie4,
-      rating: 8.7,
-      year: 2024,
-      genre: 'Action',
-      duration: '2h 3m',
-      description: 'Non-stop action with incredible practical effects and stunts.'
-    },
-    {
-      id: '15',
-      title: 'Nightmare Valley',
-      image: movie5,
-      rating: 8.3,
-      year: 2024,
-      genre: 'Horror',
-      duration: '1h 44m',
-      description: 'A terrifying journey into a valley where nightmares come to life.'
+  const fetchVideos = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('videos')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching videos:', error);
+        return;
+      }
+
+      setVideos(data || []);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const formatDuration = (seconds: number | null): string => {
+    if (!seconds) return 'N/A';
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+  };
+
+  const convertVideoToContentItem = (video: Video): ContentItem => ({
+    id: video.id,
+    title: video.title,
+    image: video.thumbnail_url || '/placeholder.svg',
+    rating: video.rating || 7.5,
+    year: video.year || 2024,
+    genre: video.genre,
+    duration: formatDuration(video.duration),
+    description: video.description || 'No description available.',
+    videoUrl: video.video_url
+  });
+
+  // Group videos by genre for different carousels
+  const animationVideos = videos.filter(video => video.genre === 'Animation').map(convertVideoToContentItem);
+  const fantasyVideos = videos.filter(video => video.genre === 'Fantasy').map(convertVideoToContentItem);
+  const sciFiVideos = videos.filter(video => video.genre === 'Sci-Fi').map(convertVideoToContentItem);
+  const allVideos = videos.map(convertVideoToContentItem);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Navigation />
+        <div className="text-center mt-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading videos...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -180,9 +103,25 @@ const Index = () => {
 
       {/* Content Sections */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
-        <ContentCarousel title="Trending Now" items={trendingContent} />
-        <ContentCarousel title="Popular on KANGLEIPAK" items={popularContent} />
-        <ContentCarousel title="New Releases" items={newReleases} />
+        {allVideos.length > 0 && (
+          <ContentCarousel title="All Videos" items={allVideos} />
+        )}
+        {animationVideos.length > 0 && (
+          <ContentCarousel title="Animation" items={animationVideos} />
+        )}
+        {fantasyVideos.length > 0 && (
+          <ContentCarousel title="Fantasy" items={fantasyVideos} />
+        )}
+        {sciFiVideos.length > 0 && (
+          <ContentCarousel title="Sci-Fi" items={sciFiVideos} />
+        )}
+        
+        {videos.length === 0 && (
+          <div className="text-center py-20">
+            <p className="text-muted-foreground text-lg">No videos available at the moment.</p>
+            <p className="text-muted-foreground text-sm mt-2">Check back later for new content!</p>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
