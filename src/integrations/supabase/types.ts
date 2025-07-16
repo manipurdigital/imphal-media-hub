@@ -286,6 +286,53 @@ export type Database = {
           },
         ]
       }
+      video_sources: {
+        Row: {
+          bitrate: number | null
+          created_at: string
+          file_size: number | null
+          id: string
+          is_default: boolean
+          quality_label: string
+          resolution: string
+          source_url: string
+          updated_at: string
+          video_id: string
+        }
+        Insert: {
+          bitrate?: number | null
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          is_default?: boolean
+          quality_label: string
+          resolution: string
+          source_url: string
+          updated_at?: string
+          video_id: string
+        }
+        Update: {
+          bitrate?: number | null
+          created_at?: string
+          file_size?: number | null
+          id?: string
+          is_default?: boolean
+          quality_label?: string
+          resolution?: string
+          source_url?: string
+          updated_at?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_sources_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       video_tags: {
         Row: {
           created_at: string | null

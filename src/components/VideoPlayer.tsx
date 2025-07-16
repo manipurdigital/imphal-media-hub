@@ -20,15 +20,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { isYouTubeUrl, extractYouTubeVideoId, getYouTubeEmbedUrl } from '@/utils/youtube';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useDebounceCallback } from '@/hooks/useDebounce';
+import { useVideoResolutions } from '@/hooks/useVideoResolutions';
+import { ResolutionSelector } from '@/components/ResolutionSelector';
 
 interface VideoPlayerProps {
   title: string;
   videoUrl?: string;
   isOpen: boolean;
   onClose: () => void;
+  videoId?: string;
 }
 
-const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => {
+const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(1);
@@ -43,14 +46,28 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
   const [isMounted, setIsMounted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [canPlay, setCanPlay] = useState(false);
+  const [isResolutionSwitching, setIsResolutionSwitching] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
   const playPromiseRef = useRef<Promise<void> | null>(null);
   
-  const isYouTube = videoUrl ? isYouTubeUrl(videoUrl) : false;
-  const youTubeVideoId = isYouTube ? extractYouTubeVideoId(videoUrl!) : null;
+  // Resolution management
+  const {
+    resolutions,
+    currentResolution,
+    isLoading: resolutionsLoading,
+    error: resolutionsError,
+    switchResolution,
+    hasMultipleResolutions,
+  } = useVideoResolutions(videoId || null);
+  
+  // Determine effective video URL (current resolution or fallback)
+  const effectiveVideoUrl = hasMultipleResolutions && currentResolution ? currentResolution.source_url : videoUrl;
+  
+  const isYouTube = effectiveVideoUrl ? isYouTubeUrl(effectiveVideoUrl) : false;
+  const youTubeVideoId = isYouTube ? extractYouTubeVideoId(effectiveVideoUrl!) : null;
   const youTubeEmbedUrl = youTubeVideoId ? getYouTubeEmbedUrl(youTubeVideoId) : null;
 
   // Auto-hide controls
@@ -326,7 +343,7 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
 
   // Initialize video when modal opens (only when these core dependencies change)
   useEffect(() => {
-    if (isOpen && videoRef.current && videoUrl && !isYouTube) {
+    if (isOpen && videoRef.current && effectiveVideoUrl && !isYouTube) {
       const video = videoRef.current;
       
       console.log('Initializing video...');
@@ -348,7 +365,7 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
       
       console.log('Video initialized with properties - volume:', volume, 'muted:', isMuted, 'playbackRate:', playbackSpeed);
     }
-  }, [isOpen, videoUrl, isYouTube]);
+  }, [isOpen, effectiveVideoUrl, isYouTube, volume, isMuted, playbackSpeed]);
 
   const togglePlay = () => {
     if (videoRef.current && isMounted) {
@@ -453,6 +470,40 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
     }
   };
 
+  const handleResolutionChange = useCallback((resolution: typeof currentResolution) => {
+    if (!resolution || !videoRef.current) return;
+    
+    // Store current playback position and state
+    const currentPosition = videoRef.current.currentTime;
+    const wasPlaying = isPlaying;
+    
+    setIsResolutionSwitching(true);
+    setIsLoading(true);
+    
+    // Switch to new resolution
+    switchResolution(resolution);
+    
+    // The video will reinitialize with the new URL through the useEffect
+    // We'll restore the position once the new video is loaded
+    const restorePosition = () => {
+      if (videoRef.current) {
+        videoRef.current.currentTime = currentPosition;
+        if (wasPlaying) {
+          videoRef.current.play();
+        }
+        setIsResolutionSwitching(false);
+      }
+    };
+    
+    // Listen for loadedmetadata to restore position
+    const handleLoadedMetadata = () => {
+      restorePosition();
+      videoRef.current?.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+    
+    videoRef.current?.addEventListener('loadedmetadata', handleLoadedMetadata);
+  }, [isPlaying, switchResolution]);
+
   const getVolumeIcon = () => {
     if (isMuted || volume === 0) return VolumeX;
     if (volume < 0.5) return Volume1;
@@ -489,9 +540,14 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
         </Button>
 
         {/* Loading Indicator */}
-        {isLoading && (
+        {(isLoading || isResolutionSwitching) && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-40">
             <Loader2 className="w-12 h-12 text-white animate-spin" />
+            {isResolutionSwitching && (
+              <div className="absolute top-20 text-white text-sm">
+                Switching to {currentResolution?.resolution}...
+              </div>
+            )}
           </div>
         )}
 
@@ -528,7 +584,7 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
         )}
 
         {/* Video Element */}
-        {videoUrl ? (
+        {effectiveVideoUrl ? (
           isYouTube ? (
             <iframe
               src={youTubeEmbedUrl}
@@ -547,7 +603,7 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
               crossOrigin="anonymous"
               playsInline
             >
-              <source src={videoUrl} type="video/mp4" />
+              <source src={effectiveVideoUrl} type="video/mp4" />
               Your browser does not support the video tag.
             </video>
           )
@@ -564,7 +620,7 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
         )}
 
         {/* Enhanced Video Controls */}
-        {videoUrl && !isYouTube && (
+        {effectiveVideoUrl && !isYouTube && (
           <div 
             className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-6 transition-opacity duration-300 ${
               showControls ? 'opacity-100' : 'opacity-0'
@@ -658,6 +714,15 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
               </div>
 
               <div className="flex items-center space-x-2">
+                {/* Resolution Selector */}
+                <ResolutionSelector
+                  resolutions={resolutions}
+                  currentResolution={currentResolution}
+                  onResolutionChange={handleResolutionChange}
+                  isLoading={isResolutionSwitching}
+                  disabled={isYouTube}
+                />
+                
                 {/* Playback Speed */}
                 <Select value={playbackSpeed.toString()} onValueChange={(value) => {
                   console.log('Playback speed selector clicked, value:', value);
@@ -715,7 +780,7 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
         )}
         
         {/* YouTube Video Title Overlay */}
-        {videoUrl && isYouTube && (
+        {effectiveVideoUrl && isYouTube && (
           <div 
             className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 transition-opacity duration-300 ${
               showControls ? 'opacity-100' : 'opacity-0'

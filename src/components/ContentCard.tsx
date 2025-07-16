@@ -259,6 +259,7 @@ const ContentCard = memo(({
       <VideoPlayer
         title={title}
         videoUrl={videoUrl}
+        videoId={id}
         isOpen={isVideoPlayerOpen}
         onClose={() => setIsVideoPlayerOpen(false)}
       />
