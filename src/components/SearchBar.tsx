@@ -94,7 +94,7 @@ const SearchBar = ({ onSearch, placeholder = "Search movies, shows, actors..." }
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-4">
+            <PopoverContent className="w-80 p-4 bg-background/95 backdrop-blur-md border border-border/50 shadow-xl">
               <div className="space-y-4">
                 <h4 className="font-medium">Filters</h4>
                 
@@ -105,7 +105,7 @@ const SearchBar = ({ onSearch, placeholder = "Search movies, shows, actors..." }
                     <SelectTrigger>
                       <SelectValue placeholder="All categories" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-background/95 backdrop-blur-md border border-border/50">
                       <SelectItem value="">All categories</SelectItem>
                       {categories.map((category) => (
                         <SelectItem key={category.id} value={category.slug}>
@@ -123,7 +123,7 @@ const SearchBar = ({ onSearch, placeholder = "Search movies, shows, actors..." }
                     <SelectTrigger>
                       <SelectValue placeholder="All collections" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-background/95 backdrop-blur-md border border-border/50">
                       <SelectItem value="">All collections</SelectItem>
                       {collections.map((collection) => (
                         <SelectItem key={collection.id} value={collection.slug}>
@@ -141,7 +141,7 @@ const SearchBar = ({ onSearch, placeholder = "Search movies, shows, actors..." }
                     <SelectTrigger>
                       <SelectValue placeholder="All types" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-background/95 backdrop-blur-md border border-border/50">
                       <SelectItem value="">All types</SelectItem>
                       <SelectItem value="movie">Movies</SelectItem>
                       <SelectItem value="series">Series</SelectItem>

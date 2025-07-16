@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect, memo } from 'react';
-import { Play, Plus, ThumbsUp, ChevronDown, Check } from 'lucide-react';
+import { Play, Plus, ThumbsUp, ChevronDown, Check, ImageIcon } from 'lucide-react';
 import VideoPlayer from '@/components/VideoPlayer';
 import { useFavoritesContext } from '@/contexts/FavoritesContext';
 
@@ -42,6 +42,8 @@ const ContentCard = memo(({
 }: ContentCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isVideoPlayerOpen, setIsVideoPlayerOpen] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const { isFavorite, toggleFavorite, loading: favoritesLoading } = useFavoritesContext();
@@ -78,16 +80,36 @@ const ContentCard = memo(({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Thumbnail Container */}
-      <div className="relative aspect-[3/4] overflow-hidden rounded-xl transform-gpu will-change-transform border border-border/30">
+      {/* Enhanced Thumbnail Container */}
+      <div className="relative aspect-[3/4] overflow-hidden rounded-xl transform-gpu will-change-transform border border-border/30 bg-muted/20">
+        {/* Image Loading State */}
+        {!imageLoaded && !imageError && (
+          <div className="absolute inset-0 bg-muted/30 shimmer-effect flex items-center justify-center">
+            <ImageIcon className="w-12 h-12 text-muted-foreground/50" />
+          </div>
+        )}
+        
+        {/* Error State */}
+        {imageError && (
+          <div className="absolute inset-0 bg-muted/30 flex flex-col items-center justify-center">
+            <ImageIcon className="w-12 h-12 text-muted-foreground/50 mb-2" />
+            <span className="text-xs text-muted-foreground">Image unavailable</span>
+          </div>
+        )}
+        
+        {/* Main Image */}
         <img 
           src={image} 
           alt={title}
-          className="w-full h-full object-cover transition-all duration-300 ease-out"
+          className={`w-full h-full object-cover transition-all duration-300 ease-out ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
           style={{
             transform: isHovered ? 'scale(1.05)' : 'scale(1)',
             transformOrigin: 'center center'
           }}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => setImageError(true)}
         />
         
         {/* Always visible title overlay */}
@@ -105,18 +127,19 @@ const ContentCard = memo(({
           </div>
         </div>
         
-        {/* Hover overlay for play button */}
-        {isHovered && (
+        {/* Enhanced Hover overlay for play button */}
+        {isHovered && imageLoaded && !imageError && (
           <div 
-            className="absolute inset-0 bg-black/40 flex items-center justify-center"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center"
             style={{
               animation: 'fade-in 0.2s ease-out forwards',
               pointerEvents: 'auto'
             }}
           >
             <button 
-              className="glass-morphism rounded-full p-4 interactive-scale hover:glow-effect"
+              className="glass-morphism rounded-full p-4 interactive-scale hover:glow-effect hover:scale-110 transition-all duration-200"
               onClick={() => setIsVideoPlayerOpen(true)}
+              aria-label={`Play ${title}`}
             >
               <Play className="w-6 h-6 text-white" />
             </button>
@@ -130,10 +153,10 @@ const ContentCard = memo(({
         </div>
       </div>
 
-      {/* Content Info - Shows on hover with stable positioning */}
-      {isHovered && (
+      {/* Enhanced Content Info - Shows on hover with stable positioning */}
+      {isHovered && imageLoaded && !imageError && (
         <div 
-          className="absolute top-full left-0 right-0 glass-gradient border border-border/50 rounded-b-xl p-4 z-30 elevated-shadow"
+          className="absolute top-full left-0 right-0 glass-gradient border border-border/50 rounded-b-xl p-4 z-30 elevated-shadow backdrop-blur-md"
           style={{
             animation: 'slide-down 0.3s ease-out forwards',
             transformOrigin: 'top center',

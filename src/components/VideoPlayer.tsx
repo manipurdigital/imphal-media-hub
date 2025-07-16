@@ -35,7 +35,7 @@ interface VideoPlayerProps {
 }
 
 const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPlayerProps) => {
-  const [showControls, setShowControls] = useState(true);
+  const [showVideoControls, setShowVideoControls] = useState(true);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [showSettings, setShowSettings] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -97,10 +97,10 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
     if (controlsTimeoutRef.current) {
       clearTimeout(controlsTimeoutRef.current);
     }
-    setShowControls(true);
+    setShowVideoControls(true);
     controlsTimeoutRef.current = setTimeout(() => {
       if (playbackState.isPlaying) {
-        setShowControls(false);
+        setShowVideoControls(false);
       }
     }, 3000);
   }, [playbackState.isPlaying]);
@@ -260,21 +260,10 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
   };
 
   // Debug logging
-  console.log('VideoPlayer Debug:', {
-    title,
-    videoId,
-    videoUrl,
-    currentResolution,
-    effectiveVideoUrl,
-    currentUrl,
-    playbackState,
-    resolutions: resolutions.length,
-    resolutionsLoading,
-    resolutionsError,
-    hasMoreFallbacks,
-    isYouTube,
-    isVimeo
-  });
+  // Enhanced video player with better UX
+  const playerReady = isYouTube || isVimeo || (effectiveVideoUrl && (playbackState.canPlay || playbackState.isLoading));
+  const shouldShowControls = !isYouTube && !isVimeo && effectiveVideoUrl;
+  const hasVideoContent = effectiveVideoUrl && (isYouTube || isVimeo || currentUrl);
 
   if (!isOpen) return null;
 
@@ -436,9 +425,9 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
           {effectiveVideoUrl && !isYouTube && !isVimeo && (
             <div 
               className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-6 transition-opacity duration-300 ${
-                showControls ? 'opacity-100' : 'opacity-0'
+                showVideoControls ? 'opacity-100' : 'opacity-0'
               }`}
-              onMouseEnter={() => setShowControls(true)}
+              onMouseEnter={() => setShowVideoControls(true)}
             >
               {/* Progress Bar */}
               <div className="mb-4">
@@ -589,9 +578,9 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
           {effectiveVideoUrl && isYouTube && (
             <div 
               className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 transition-opacity duration-300 ${
-                showControls ? 'opacity-100' : 'opacity-0'
+                showVideoControls ? 'opacity-100' : 'opacity-0'
               }`}
-              onMouseEnter={() => setShowControls(true)}
+              onMouseEnter={() => setShowVideoControls(true)}
             >
               <h3 className="text-white font-semibold">{title}</h3>
             </div>

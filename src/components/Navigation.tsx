@@ -103,10 +103,10 @@ const Navigation = () => {
                 <input
                   type="text"
                   placeholder="Titles, people, genres"
-                  className="pl-10 pr-4 py-2 bg-black/50 border border-white/20 rounded-sm transition-all duration-300
-                           focus:outline-none focus:ring-1 focus:ring-white/50 focus:border-white/50
-                           placeholder:text-muted-foreground text-sm w-64
-                           hover:bg-black/70"
+                  className="pl-10 pr-4 py-2 bg-background/20 backdrop-blur-md border border-border/30 rounded-lg 
+                           transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50 
+                           focus:border-primary/50 placeholder:text-muted-foreground text-sm w-64
+                           hover:bg-background/30 hover:border-border/50"
                 />
               </div>
 
@@ -129,7 +129,7 @@ const Navigation = () => {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-black/90 border border-white/20" align="end" forceMount>
+                <DropdownMenuContent className="w-56 bg-background/95 backdrop-blur-md border border-border/50 shadow-xl" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">
