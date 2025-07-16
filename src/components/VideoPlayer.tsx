@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { isYouTubeUrl, extractYouTubeVideoId, getYouTubeEmbedUrl } from '@/utils/youtube';
 
 interface VideoPlayerProps {
   title: string;
@@ -14,6 +15,10 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
+  
+  const isYouTube = videoUrl ? isYouTubeUrl(videoUrl) : false;
+  const youTubeVideoId = isYouTube ? extractYouTubeVideoId(videoUrl!) : null;
+  const youTubeEmbedUrl = youTubeVideoId ? getYouTubeEmbedUrl(youTubeVideoId) : null;
 
   const handleClose = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -21,9 +26,13 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
   }, [onClose]);
 
   useEffect(() => {
-    if (isOpen && videoRef.current) {
-      videoRef.current.play();
-      setIsPlaying(true);
+    if (isOpen) {
+      if (!isYouTube && videoRef.current) {
+        videoRef.current.play();
+        setIsPlaying(true);
+      } else if (isYouTube) {
+        setIsPlaying(true);
+      }
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -40,7 +49,7 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
       document.removeEventListener('keydown', handleEscapeKey);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isYouTube]);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -88,16 +97,28 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
 
         {/* Video Element */}
         {videoUrl ? (
-          <video
-            ref={videoRef}
-            className="w-full h-full object-contain cursor-pointer"
-            onClick={handleVideoClick}
-            onMouseEnter={() => setShowControls(true)}
-            onMouseLeave={() => setShowControls(false)}
-          >
-            <source src={videoUrl} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          isYouTube ? (
+            <iframe
+              src={youTubeEmbedUrl}
+              className="w-full h-full"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              onMouseEnter={() => setShowControls(true)}
+              onMouseLeave={() => setShowControls(false)}
+            />
+          ) : (
+            <video
+              ref={videoRef}
+              className="w-full h-full object-contain cursor-pointer"
+              onClick={handleVideoClick}
+              onMouseEnter={() => setShowControls(true)}
+              onMouseLeave={() => setShowControls(false)}
+            >
+              <source src={videoUrl} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          )
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-900">
             <div className="text-center text-white">
@@ -111,7 +132,7 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
         )}
 
         {/* Video Controls */}
-        {videoUrl && (
+        {videoUrl && !isYouTube && (
           <div 
             className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 transition-opacity duration-300 ${
               showControls ? 'opacity-100' : 'opacity-0'
@@ -162,6 +183,18 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
                 <Maximize className="w-6 h-6" />
               </Button>
             </div>
+          </div>
+        )}
+        
+        {/* YouTube Video Title Overlay */}
+        {videoUrl && isYouTube && (
+          <div 
+            className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 transition-opacity duration-300 ${
+              showControls ? 'opacity-100' : 'opacity-0'
+            }`}
+            onMouseEnter={() => setShowControls(true)}
+          >
+            <h3 className="text-white font-semibold">{title}</h3>
           </div>
         )}
       </div>
