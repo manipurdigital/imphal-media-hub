@@ -2,19 +2,10 @@ import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import HeroSection from '@/components/HeroSection';
 import ContentCarousel from '@/components/ContentCarousel';
-import { supabase } from '@/integrations/supabase/client';
-
-interface Video {
-  id: string;
-  title: string;
-  description: string | null;
-  video_url: string;
-  thumbnail_url: string | null;
-  duration: number | null;
-  genre: string;
-  year: number | null;
-  rating: number | null;
-}
+import SearchBar from '@/components/SearchBar';
+import { useVideoSearch, VideoSearchResult } from '@/hooks/useVideoSearch';
+import { useCollections } from '@/hooks/useCollections';
+import { useCategories } from '@/hooks/useCategories';
 
 interface ContentItem {
   id: string;
@@ -26,35 +17,34 @@ interface ContentItem {
   duration: string;
   description: string;
   videoUrl?: string;
+  castMembers?: string[];
+  director?: string;
+  contentType?: string;
+  categories?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+  }>;
+  trailerUrl?: string;
 }
 
 const Index = () => {
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { 
+    videos, 
+    loading, 
+    error, 
+    searchVideos, 
+    getVideosByCollection, 
+    getAllVideos 
+  } = useVideoSearch();
+  const { featuredCollections } = useCollections();
+  const { categories } = useCategories();
 
   useEffect(() => {
-    fetchVideos();
+    getAllVideos();
   }, []);
-
-  const fetchVideos = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('videos')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching videos:', error);
-        return;
-      }
-
-      setVideos(data || []);
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatDuration = (seconds: number | null): string => {
     if (!seconds) return 'N/A';
@@ -63,23 +53,56 @@ const Index = () => {
     return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
   };
 
-  const convertVideoToContentItem = (video: Video): ContentItem => ({
+  const convertVideoToContentItem = (video: VideoSearchResult): ContentItem => ({
     id: video.id,
     title: video.title,
     image: video.thumbnail_url || '/placeholder.svg',
     rating: video.rating || 7.5,
-    year: video.year || 2024,
+    year: video.production_year || video.year || 2024,
     genre: video.genre,
     duration: formatDuration(video.duration),
     description: video.description || 'No description available.',
-    videoUrl: video.video_url
+    videoUrl: video.video_url,
+    castMembers: video.cast_members || [],
+    director: video.director,
+    contentType: video.content_type,
+    categories: video.categories || [],
+    trailerUrl: video.trailer_url
   });
 
-  // Group videos by genre for different carousels
-  const animationVideos = videos.filter(video => video.genre === 'Animation').map(convertVideoToContentItem);
-  const fantasyVideos = videos.filter(video => video.genre === 'Fantasy').map(convertVideoToContentItem);
-  const sciFiVideos = videos.filter(video => video.genre === 'Sci-Fi').map(convertVideoToContentItem);
+  const handleSearch = (query: string, filters?: any) => {
+    setSearchQuery(query);
+    setShowSearch(true);
+    searchVideos(query, filters);
+  };
+
+  const handleCollectionClick = (collectionSlug: string) => {
+    setShowSearch(false);
+    getVideosByCollection(collectionSlug);
+  };
+
+  const handleBackToHome = () => {
+    setShowSearch(false);
+    setSearchQuery('');
+    getAllVideos();
+  };
+
+  // Group videos by different criteria
   const allVideos = videos.map(convertVideoToContentItem);
+  const movieVideos = videos.filter(video => video.content_type === 'movie').map(convertVideoToContentItem);
+  const seriesVideos = videos.filter(video => video.content_type === 'series').map(convertVideoToContentItem);
+  const documentaryVideos = videos.filter(video => video.content_type === 'documentary').map(convertVideoToContentItem);
+  
+  // Group by categories
+  const actionVideos = videos.filter(video => 
+    video.categories.some(cat => cat.slug === 'action')
+  ).map(convertVideoToContentItem);
+  const comedyVideos = videos.filter(video => 
+    video.categories.some(cat => cat.slug === 'comedy')
+  ).map(convertVideoToContentItem);
+  const dramaVideos = videos.filter(video => 
+    video.categories.some(cat => cat.slug === 'drama')
+  ).map(convertVideoToContentItem);
 
   if (loading) {
     return (
@@ -93,34 +116,123 @@ const Index = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="text-center mt-20">
+          <p className="text-destructive text-lg">Error loading videos: {error}</p>
+          <button 
+            onClick={getAllVideos}
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
       <Navigation />
 
       {/* Hero Section */}
-      <HeroSection />
+      {!showSearch && <HeroSection />}
+
+      {/* Search Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <SearchBar onSearch={handleSearch} />
+        
+        {showSearch && (
+          <div className="mt-4 flex items-center gap-2">
+            <button 
+              onClick={handleBackToHome}
+              className="text-primary hover:text-primary/80 text-sm"
+            >
+              ← Back to Home
+            </button>
+            {searchQuery && (
+              <span className="text-muted-foreground text-sm">
+                Search results for "{searchQuery}"
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Content Sections */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
-        {allVideos.length > 0 && (
-          <ContentCarousel title="All Videos" items={allVideos} />
-        )}
-        {animationVideos.length > 0 && (
-          <ContentCarousel title="Animation" items={animationVideos} />
-        )}
-        {fantasyVideos.length > 0 && (
-          <ContentCarousel title="Fantasy" items={fantasyVideos} />
-        )}
-        {sciFiVideos.length > 0 && (
-          <ContentCarousel title="Sci-Fi" items={sciFiVideos} />
-        )}
-        
-        {videos.length === 0 && (
-          <div className="text-center py-20">
-            <p className="text-muted-foreground text-lg">No videos available at the moment.</p>
-            <p className="text-muted-foreground text-sm mt-2">Check back later for new content!</p>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 space-y-12">
+        {showSearch ? (
+          // Search Results
+          <>
+            {allVideos.length > 0 ? (
+              <ContentCarousel 
+                title={searchQuery ? `Search Results (${allVideos.length})` : "Videos"} 
+                items={allVideos} 
+              />
+            ) : (
+              <div className="text-center py-20">
+                <p className="text-muted-foreground text-lg">No videos found.</p>
+                <p className="text-muted-foreground text-sm mt-2">Try adjusting your search or filters.</p>
+              </div>
+            )}
+          </>
+        ) : (
+          // Home Page Content
+          <>
+            {/* Featured Collections */}
+            <div className="space-y-8">
+              <h2 className="text-2xl font-bold text-foreground">Featured Collections</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {featuredCollections.map((collection) => (
+                  <div 
+                    key={collection.id}
+                    onClick={() => handleCollectionClick(collection.slug)}
+                    className="bg-card rounded-lg p-6 cursor-pointer hover:bg-card/80 transition-colors border border-border"
+                  >
+                    <h3 className="text-lg font-semibold text-foreground mb-2">{collection.name}</h3>
+                    <p className="text-muted-foreground text-sm">{collection.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Content by Type */}
+            {movieVideos.length > 0 && (
+              <ContentCarousel title="Movies" items={movieVideos} />
+            )}
+            {seriesVideos.length > 0 && (
+              <ContentCarousel title="Series" items={seriesVideos} />
+            )}
+            {documentaryVideos.length > 0 && (
+              <ContentCarousel title="Documentaries" items={documentaryVideos} />
+            )}
+
+            {/* Content by Category */}
+            {actionVideos.length > 0 && (
+              <ContentCarousel title="Action" items={actionVideos} />
+            )}
+            {comedyVideos.length > 0 && (
+              <ContentCarousel title="Comedy" items={comedyVideos} />
+            )}
+            {dramaVideos.length > 0 && (
+              <ContentCarousel title="Drama" items={dramaVideos} />
+            )}
+
+            {/* All Videos */}
+            {allVideos.length > 0 && (
+              <ContentCarousel title="All Videos" items={allVideos} />
+            )}
+            
+            {videos.length === 0 && (
+              <div className="text-center py-20">
+                <p className="text-muted-foreground text-lg">No videos available at the moment.</p>
+                <p className="text-muted-foreground text-sm mt-2">Check back later for new content!</p>
+              </div>
+            )}
+          </>
         )}
       </div>
 

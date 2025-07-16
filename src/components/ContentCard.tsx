@@ -11,9 +11,32 @@ interface ContentCardProps {
   duration: string;
   description?: string;
   videoUrl?: string;
+  castMembers?: string[];
+  director?: string;
+  contentType?: string;
+  categories?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+  }>;
+  trailerUrl?: string;
 }
 
-const ContentCard = ({ title, image, rating, year, genre, duration, description, videoUrl }: ContentCardProps) => {
+const ContentCard = ({ 
+  title, 
+  image, 
+  rating, 
+  year, 
+  genre, 
+  duration, 
+  description, 
+  videoUrl, 
+  castMembers = [], 
+  director, 
+  contentType, 
+  categories = [], 
+  trailerUrl 
+}: ContentCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isVideoPlayerOpen, setIsVideoPlayerOpen] = useState(false);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -100,12 +123,50 @@ const ContentCard = ({ title, image, rating, year, genre, duration, description,
         >
           <h3 className="font-semibold text-foreground mb-2 line-clamp-1">{title}</h3>
           
-          <div className="flex items-center space-x-2 text-xs text-muted-foreground mb-3">
+          <div className="flex items-center space-x-2 text-xs text-muted-foreground mb-2">
             <span>{year}</span>
             <span>•</span>
             <span>{genre}</span>
             <span>•</span>
             <span>{duration}</span>
+            {contentType && (
+              <>
+                <span>•</span>
+                <span className="capitalize">{contentType}</span>
+              </>
+            )}
+          </div>
+
+          {/* Categories */}
+          {categories.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-2">
+              {categories.slice(0, 3).map((category) => (
+                <span 
+                  key={category.id} 
+                  className="text-xs bg-secondary/50 text-secondary-foreground px-2 py-1 rounded-full"
+                >
+                  {category.name}
+                </span>
+              ))}
+              {categories.length > 3 && (
+                <span className="text-xs text-muted-foreground">+{categories.length - 3} more</span>
+              )}
+            </div>
+          )}
+
+          {/* Cast and Director */}
+          <div className="space-y-1 mb-3">
+            {director && (
+              <p className="text-xs text-muted-foreground">
+                <span className="font-medium">Director:</span> {director}
+              </p>
+            )}
+            {castMembers.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                <span className="font-medium">Cast:</span> {castMembers.slice(0, 3).join(', ')}
+                {castMembers.length > 3 && <span className="opacity-70"> +{castMembers.length - 3} more</span>}
+              </p>
+            )}
           </div>
 
           {description && (
@@ -120,15 +181,29 @@ const ContentCard = ({ title, image, rating, year, genre, duration, description,
               <button 
                 className="bg-primary rounded-full p-2 hover:bg-primary/80 transition-colors duration-200"
                 onClick={() => setIsVideoPlayerOpen(true)}
+                title="Play video"
               >
                 <Play className="w-4 h-4 text-primary-foreground" />
               </button>
+              {trailerUrl && (
+                <button 
+                  className="bg-secondary/50 rounded-full p-2 hover:bg-secondary/70 transition-colors duration-200"
+                  onClick={() => {
+                    console.log(`Playing trailer for ${title}`);
+                    // TODO: Implement trailer functionality
+                  }}
+                  title="Watch trailer"
+                >
+                  <Play className="w-3 h-3 text-secondary-foreground" />
+                </button>
+              )}
               <button 
                 className="bg-secondary/50 rounded-full p-2 hover:bg-secondary/70 transition-colors duration-200"
                 onClick={() => {
                   console.log(`Added ${title} to My List`);
                   // TODO: Implement add to list functionality
                 }}
+                title="Add to My List"
               >
                 <Plus className="w-4 h-4 text-secondary-foreground" />
               </button>
@@ -138,12 +213,16 @@ const ContentCard = ({ title, image, rating, year, genre, duration, description,
                   console.log(`Liked ${title}`);
                   // TODO: Implement like functionality
                 }}
+                title="Like this content"
               >
                 <ThumbsUp className="w-4 h-4 text-secondary-foreground" />
               </button>
             </div>
             
-            <button className="bg-secondary/50 rounded-full p-2 hover:bg-secondary/70 transition-colors duration-200">
+            <button 
+              className="bg-secondary/50 rounded-full p-2 hover:bg-secondary/70 transition-colors duration-200"
+              title="More options"
+            >
               <ChevronDown className="w-4 h-4 text-secondary-foreground" />
             </button>
           </div>

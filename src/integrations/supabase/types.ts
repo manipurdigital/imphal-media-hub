@@ -14,6 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      collections: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          name: string
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          name: string
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          name?: string
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -41,6 +110,27 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      tags: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          slug?: string
         }
         Relationships: []
       }
@@ -73,44 +163,176 @@ export type Database = {
           },
         ]
       }
+      video_categories: {
+        Row: {
+          category_id: string
+          created_at: string | null
+          id: string
+          video_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string | null
+          id?: string
+          video_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string | null
+          id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_categories_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_collections: {
+        Row: {
+          collection_id: string
+          created_at: string | null
+          display_order: number | null
+          id: string
+          video_id: string
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          video_id: string
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_collections_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_collections_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_tags: {
+        Row: {
+          created_at: string | null
+          id: string
+          tag_id: string
+          video_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          tag_id: string
+          video_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          tag_id?: string
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_tags_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       videos: {
         Row: {
+          cast_members: string[] | null
+          content_status: Database["public"]["Enums"]["content_status"] | null
+          content_type: Database["public"]["Enums"]["content_type"] | null
           created_at: string
           description: string | null
+          director: string | null
           duration: number | null
           genre: string
           id: string
+          production_year: number | null
           rating: number | null
+          search_vector: unknown | null
           thumbnail_url: string | null
           title: string
+          trailer_url: string | null
           updated_at: string
           video_url: string
           view_count: number | null
           year: number | null
         }
         Insert: {
+          cast_members?: string[] | null
+          content_status?: Database["public"]["Enums"]["content_status"] | null
+          content_type?: Database["public"]["Enums"]["content_type"] | null
           created_at?: string
           description?: string | null
+          director?: string | null
           duration?: number | null
           genre: string
           id?: string
+          production_year?: number | null
           rating?: number | null
+          search_vector?: unknown | null
           thumbnail_url?: string | null
           title: string
+          trailer_url?: string | null
           updated_at?: string
           video_url: string
           view_count?: number | null
           year?: number | null
         }
         Update: {
+          cast_members?: string[] | null
+          content_status?: Database["public"]["Enums"]["content_status"] | null
+          content_type?: Database["public"]["Enums"]["content_type"] | null
           created_at?: string
           description?: string | null
+          director?: string | null
           duration?: number | null
           genre?: string
           id?: string
+          production_year?: number | null
           rating?: number | null
+          search_vector?: unknown | null
           thumbnail_url?: string | null
           title?: string
+          trailer_url?: string | null
           updated_at?: string
           video_url?: string
           view_count?: number | null
@@ -126,7 +348,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      content_status: "draft" | "published" | "archived"
+      content_type: "movie" | "series" | "documentary" | "short" | "trailer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -253,6 +476,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      content_status: ["draft", "published", "archived"],
+      content_type: ["movie", "series", "documentary", "short", "trailer"],
+    },
   },
 } as const
