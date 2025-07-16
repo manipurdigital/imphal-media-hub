@@ -18,6 +18,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['Helvetica Neue', 'Arial', 'sans-serif'],
+				netflix: ['Netflix Sans', 'Helvetica Neue', 'Arial', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -29,6 +33,11 @@ export default {
 					foreground: 'hsl(var(--primary-foreground))',
 					glow: 'hsl(var(--primary-glow))',
 					dark: 'hsl(var(--primary-dark))'
+				},
+				netflix: {
+					red: 'hsl(0 100% 45%)',
+					black: 'hsl(0 0% 8%)',
+					gray: 'hsl(0 0% 30%)',
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',

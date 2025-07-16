@@ -142,7 +142,7 @@ const Index = () => {
       {!showSearch && <HeroSection />}
 
       {/* Search Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
         <SearchBar onSearch={handleSearch} />
         
         {showSearch && (
@@ -163,7 +163,7 @@ const Index = () => {
       </div>
 
       {/* Content Sections */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 space-y-12">
+      <div className="pb-12 space-y-12">
         {showSearch ? (
           // Search Results
           <>
@@ -182,29 +182,12 @@ const Index = () => {
         ) : (
           // Home Page Content
           <>
-            {/* Featured Collections */}
-            <div className="space-y-8">
-              <h2 className="text-2xl font-bold text-foreground">Featured Collections</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {featuredCollections.map((collection) => (
-                  <div 
-                    key={collection.id}
-                    onClick={() => handleCollectionClick(collection.slug)}
-                    className="bg-card rounded-lg p-6 cursor-pointer hover:bg-card/80 transition-colors border border-border"
-                  >
-                    <h3 className="text-lg font-semibold text-foreground mb-2">{collection.name}</h3>
-                    <p className="text-muted-foreground text-sm">{collection.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Content by Type */}
+            {/* Netflix-Style Content Sections */}
             {movieVideos.length > 0 && (
               <ContentCarousel title="Movies" items={movieVideos} />
             )}
             {seriesVideos.length > 0 && (
-              <ContentCarousel title="Series" items={seriesVideos} />
+              <ContentCarousel title="TV Shows" items={seriesVideos} />
             )}
             {documentaryVideos.length > 0 && (
               <ContentCarousel title="Documentaries" items={documentaryVideos} />
@@ -212,7 +195,7 @@ const Index = () => {
 
             {/* Content by Category */}
             {actionVideos.length > 0 && (
-              <ContentCarousel title="Action" items={actionVideos} />
+              <ContentCarousel title="Action & Adventure" items={actionVideos} />
             )}
             {comedyVideos.length > 0 && (
               <ContentCarousel title="Comedy" items={comedyVideos} />
@@ -221,9 +204,9 @@ const Index = () => {
               <ContentCarousel title="Drama" items={dramaVideos} />
             )}
 
-            {/* All Videos */}
+            {/* Trending Now */}
             {allVideos.length > 0 && (
-              <ContentCarousel title="All Videos" items={allVideos} />
+              <ContentCarousel title="Trending Now" items={allVideos.slice(0, 10)} />
             )}
             
             {videos.length === 0 && (
@@ -236,45 +219,45 @@ const Index = () => {
         )}
       </div>
 
-      {/* Footer */}
-      <footer className="bg-card border-t border-border py-12 mt-24">
+      {/* Netflix-Style Footer */}
+      <footer className="bg-black/50 py-16 mt-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">KANGLEIPAK</h3>
-              <p className="text-muted-foreground text-sm">
+              <h3 className="text-lg font-semibold text-white mb-4">KANGLEIPAK</h3>
+              <p className="text-gray-400 text-sm">
                 Your premier destination for entertainment. Stream thousands of movies and shows.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-foreground mb-4">Navigation</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary transition-colors">Home</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Movies</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">TV Shows</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">My List</a></li>
+              <h4 className="font-semibold text-white mb-4">Navigation</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">Home</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Movies</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">TV Shows</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">My List</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-foreground mb-4">Support</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Contact Us</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
+              <h4 className="font-semibold text-white mb-4">Support</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-foreground mb-4">Connect</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary transition-colors">Facebook</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Twitter</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Instagram</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">YouTube</a></li>
+              <h4 className="font-semibold text-white mb-4">Connect</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">Facebook</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Twitter</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Instagram</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">YouTube</a></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
             © 2024 KANGLEIPAK OTT Platform. All rights reserved.
           </div>
         </div>

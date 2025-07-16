@@ -6,21 +6,21 @@
 
 @layer base {
   :root {
-    /* Enhanced Streaming Platform Dark Theme */
-    --background: 216 28% 7%;
-    --foreground: 0 0% 96%;
+    /* Netflix Dark Theme */
+    --background: 0 0% 8%;
+    --foreground: 0 0% 100%;
 
-    --card: 216 28% 9%;
-    --card-foreground: 0 0% 96%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 216 28% 9%;
-    --popover-foreground: 0 0% 96%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 100%;
 
-    /* Enhanced Purple Accent System */
-    --primary: 270 91% 65%;
+    /* Netflix Red Accent System */
+    --primary: 0 100% 45%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 270 91% 75%;
-    --primary-dark: 270 91% 55%;
+    --primary-glow: 0 100% 55%;
+    --primary-dark: 0 100% 35%;
 
     /* Refined Secondary System */
     --secondary: 216 28% 12%;
