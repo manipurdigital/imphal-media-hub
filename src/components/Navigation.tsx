@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Bell, User, LogOut, Settings } from 'lucide-react';
+import { Search, Bell, User, LogOut, Settings, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { useToast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -31,6 +32,7 @@ const Navigation = () => {
     console.log('AuthProvider not available, showing unauthenticated state');
   }
   
+  const { data: userRole } = useUserRole();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -132,6 +134,14 @@ const Navigation = () => {
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Account Settings</span>
                     </DropdownMenuItem>
+                    {userRole === 'admin' && (
+                      <DropdownMenuItem>
+                        <Link to="/admin" className="flex items-center w-full">
+                          <Shield className="mr-2 h-4 w-4" />
+                          <span>Admin Panel</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem>
                       <span>Help Center</span>
                     </DropdownMenuItem>
