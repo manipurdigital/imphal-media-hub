@@ -127,7 +127,8 @@ export const useVideoPlayback = (
     };
 
     const handleLoadStart = async () => {
-      setState(prev => ({ ...prev, isLoading: true, error: null }));
+      setState(prev => ({ ...prev, isLoading: true, error: null, canPlay: false }));
+      console.log('Video load started:', currentUrl);
       if (videoId) {
         await updateVideoAccessibilityStatus(videoId, 'testing');
       }
@@ -142,7 +143,7 @@ export const useVideoPlayback = (
         error: null,
         hasError: false 
       }));
-      console.log('Video metadata loaded - duration:', video.duration);
+      console.log('Video metadata loaded - duration:', video.duration, 'readyState:', video.readyState);
     };
 
     const handleCanPlay = async () => {
@@ -157,7 +158,7 @@ export const useVideoPlayback = (
       if (videoId) {
         await updateVideoAccessibilityStatus(videoId, 'accessible');
       }
-      console.log('Video can play - duration:', video.duration);
+      console.log('Video can play - duration:', video.duration, 'readyState:', video.readyState);
     };
 
     const handleError = async (e: Event) => {
@@ -278,7 +279,18 @@ export const useVideoPlayback = (
   // Playback controls
   const play = useCallback(async () => {
     const video = videoRef.current;
-    if (!video || !state.canPlay) return;
+    if (!video) return;
+
+    console.log('Play called:', { canPlay: state.canPlay, readyState: video.readyState, src: video.src });
+    
+    // If video can't play yet, try to load it first
+    if (!state.canPlay && video.readyState < 3) {
+      console.log('Video not ready, loading...');
+      video.load();
+      
+      // Wait a bit for the video to load
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
 
     try {
       // Cancel any existing play promise
@@ -292,7 +304,12 @@ export const useVideoPlayback = (
       playPromiseRef.current = null;
     } catch (error) {
       console.error('Play error:', error);
-      setState(prev => ({ ...prev, isLoading: false }));
+      setState(prev => ({ 
+        ...prev, 
+        isLoading: false,
+        hasError: true,
+        error: `Playback failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      }));
     }
   }, [state.canPlay]);
 
@@ -391,6 +408,16 @@ export const useVideoPlayback = (
     const video = videoRef.current;
     if (video && currentUrl) {
       const mimeType = getVideoMimeType(currentUrl);
+      
+      // Reset state when changing URL
+      setState(prev => ({
+        ...prev,
+        canPlay: false,
+        isLoading: true,
+        hasError: false,
+        error: null
+      }));
+      
       video.src = currentUrl;
       video.load();
       

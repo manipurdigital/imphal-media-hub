@@ -75,14 +75,6 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
   
   const effectiveVideoUrl = getEffectiveVideoUrl();
   
-  // Video playback management
-  const {
-    state: playbackState,
-    controls: playbackControls,
-    currentUrl,
-    hasMoreFallbacks
-  } = useVideoPlayback(videoRef, effectiveVideoUrl, videoId);
-  
   // Determine if this is a YouTube or Vimeo video
   const isYouTube = effectiveVideoUrl ? isYouTubeUrl(effectiveVideoUrl) : false;
   const youTubeVideoId = isYouTube ? extractYouTubeVideoId(effectiveVideoUrl!) : null;
@@ -91,6 +83,14 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
   const isVimeo = effectiveVideoUrl ? isVimeoUrl(effectiveVideoUrl) : false;
   const vimeoVideoId = isVimeo ? extractVimeoVideoId(effectiveVideoUrl!) : null;
   const vimeoEmbedUrl = vimeoVideoId ? getVimeoEmbedUrl(vimeoVideoId) : null;
+  
+  // Video playback management - only for HTML5 videos, not YouTube/Vimeo
+  const {
+    state: playbackState,
+    controls: playbackControls,
+    currentUrl,
+    hasMoreFallbacks
+  } = useVideoPlayback(videoRef, !isYouTube && !isVimeo ? effectiveVideoUrl : null, videoId);
 
   // Auto-hide controls
   const resetControlsTimeout = useCallback(() => {
@@ -271,7 +271,9 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
     resolutions: resolutions.length,
     resolutionsLoading,
     resolutionsError,
-    hasMoreFallbacks
+    hasMoreFallbacks,
+    isYouTube,
+    isVimeo
   });
 
   if (!isOpen) return null;
@@ -412,6 +414,7 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
                 playsInline
                 controls={false}
                 controlsList="nodownload nofullscreen noremoteplayback"
+                crossOrigin="anonymous"
               >
                 <source src={currentUrl || effectiveVideoUrl} type="video/mp4" />
                 Your browser does not support the video tag.
