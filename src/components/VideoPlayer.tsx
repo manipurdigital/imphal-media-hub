@@ -342,7 +342,7 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
     }
   }, [playbackSpeed]);
 
-  // Initialize video when modal opens (only when these core dependencies change)
+  // Initialize video when modal opens (only when video source changes)
   useEffect(() => {
     if (isOpen && videoRef.current && effectiveVideoUrl && !isYouTube) {
       const video = videoRef.current;
@@ -366,7 +366,14 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
       
       console.log('Video initialized with properties - volume:', volume, 'muted:', isMuted, 'playbackRate:', playbackSpeed);
     }
-  }, [isOpen, effectiveVideoUrl, isYouTube, volume, isMuted, playbackSpeed]);
+  }, [isOpen, effectiveVideoUrl, isYouTube]);
+
+  // Update video mute state
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
 
   const togglePlay = () => {
     if (videoRef.current && isMounted) {
