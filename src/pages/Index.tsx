@@ -224,7 +224,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-lg font-semibold text-white mb-4">KANGLEIPAK</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">KangleiFlix</h3>
               <p className="text-gray-400 text-sm">
                 Your premier destination for entertainment. Stream thousands of movies and shows.
               </p>
@@ -258,7 +258,7 @@ const Index = () => {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-            © 2024 KANGLEIPAK OTT Platform. All rights reserved.
+            © 2024 KangleiFlix OTT Platform. All rights reserved.
           </div>
         </div>
       </footer>

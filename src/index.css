@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* KANGLEIPAK OTT Streaming Platform Design System */
+/* KangleiFlix OTT Streaming Platform Design System */
 
 @layer base {
   :root {
@@ -236,6 +236,14 @@
            bg-[length:200%_100%] animate-shimmer;
   }
   
+  .netflix-logo {
+    @apply text-primary font-bold text-2xl;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+  }
+
   .shimmer {
     position: relative;
     overflow: hidden;

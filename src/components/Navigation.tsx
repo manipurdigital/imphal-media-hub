@@ -68,7 +68,7 @@ const Navigation = () => {
         {/* Logo */}
         <div className="flex items-center space-x-8">
           <Link to="/" className="netflix-logo text-primary font-bold text-2xl tracking-tight">
-            KANGLEIPAK
+            KangleiFlix
           </Link>
           
           {/* Navigation Links - Only show if authenticated */}
