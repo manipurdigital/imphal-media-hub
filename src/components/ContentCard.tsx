@@ -86,10 +86,25 @@ const ContentCard = ({
           }}
         />
         
-        {/* Overlay on hover */}
+        {/* Always visible title overlay */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent p-4 pt-8">
+          <h3 className="text-white font-semibold text-sm md:text-base line-clamp-2 text-shadow">
+            {title}
+          </h3>
+          <div className="flex items-center space-x-2 text-xs text-gray-300 mt-1">
+            <span>{year}</span>
+            <span>•</span>
+            <span className="flex items-center">
+              <span className="text-yellow-400 mr-1">★</span>
+              {rating}
+            </span>
+          </div>
+        </div>
+        
+        {/* Hover overlay for play button */}
         {isHovered && (
           <div 
-            className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-center justify-center"
+            className="absolute inset-0 bg-black/40 flex items-center justify-center"
             style={{
               animation: 'fade-in 0.2s ease-out forwards',
               pointerEvents: 'auto'
@@ -104,7 +119,7 @@ const ContentCard = ({
           </div>
         )}
 
-        {/* Rating Badge */}
+        {/* Rating Badge - moved to top right */}
         <div className="absolute top-2 right-2 glass-morphism px-3 py-1 rounded-full text-yellow-400 text-sm font-semibold flex items-center">
           <span className="mr-1">★</span>
           {rating}
