@@ -354,17 +354,14 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
   };
 
   const handleSeek = (value: number[]) => {
-    console.log('Seek called with:', value, 'Duration:', duration, 'CanPlay:', canPlay);
-    if (videoRef.current && isMounted && duration > 0) {
+    if (videoRef.current && isMounted && duration > 0 && canPlay) {
       const newTime = (value[0] / 100) * duration;
-      console.log('Setting current time to:', newTime);
-      setCurrentTime(newTime);
-      
-      // Directly set the video time without debouncing for immediate response
-      try {
-        videoRef.current.currentTime = newTime;
-      } catch (error) {
-        console.warn('Error seeking video:', error);
+      if (isFinite(newTime) && newTime >= 0 && newTime <= duration) {
+        try {
+          videoRef.current.currentTime = newTime;
+        } catch (error) {
+          console.warn('Error seeking video:', error);
+        }
       }
     }
   };
@@ -609,19 +606,22 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
               <div className="flex items-center space-x-2">
                 {/* Playback Speed */}
                 <Select value={playbackSpeed.toString()} onValueChange={(value) => {
-                  console.log('Playback speed changed to:', value);
-                  setPlaybackSpeed(Number(value));
+                  const speed = Number(value);
+                  setPlaybackSpeed(speed);
+                  if (videoRef.current) {
+                    videoRef.current.playbackRate = speed;
+                  }
                 }}>
-                  <SelectTrigger className="w-16 h-8 text-white border-white/30 bg-black/50 hover:bg-black/70">
+                  <SelectTrigger className="w-16 h-8 text-white border-white/30 bg-black/50 hover:bg-black/70 z-50">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-black/90 border-white/30">
-                    <SelectItem value="0.5" className="text-white hover:bg-white/20">0.5x</SelectItem>
-                    <SelectItem value="0.75" className="text-white hover:bg-white/20">0.75x</SelectItem>
-                    <SelectItem value="1" className="text-white hover:bg-white/20">1x</SelectItem>
-                    <SelectItem value="1.25" className="text-white hover:bg-white/20">1.25x</SelectItem>
-                    <SelectItem value="1.5" className="text-white hover:bg-white/20">1.5x</SelectItem>
-                    <SelectItem value="2" className="text-white hover:bg-white/20">2x</SelectItem>
+                  <SelectContent className="bg-black border-white/30 z-[60]">
+                    <SelectItem value="0.5" className="text-white hover:bg-white/20 focus:bg-white/20">0.5x</SelectItem>
+                    <SelectItem value="0.75" className="text-white hover:bg-white/20 focus:bg-white/20">0.75x</SelectItem>
+                    <SelectItem value="1" className="text-white hover:bg-white/20 focus:bg-white/20">1x</SelectItem>
+                    <SelectItem value="1.25" className="text-white hover:bg-white/20 focus:bg-white/20">1.25x</SelectItem>
+                    <SelectItem value="1.5" className="text-white hover:bg-white/20 focus:bg-white/20">1.5x</SelectItem>
+                    <SelectItem value="2" className="text-white hover:bg-white/20 focus:bg-white/20">2x</SelectItem>
                   </SelectContent>
                 </Select>
 
