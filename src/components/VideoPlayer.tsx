@@ -314,24 +314,27 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
   const togglePlay = () => {
     if (videoRef.current && isMounted) {
       try {
-        if (isPlaying) {
-          videoRef.current.pause();
-          playPromiseRef.current = null;
-        } else {
+        if (videoRef.current.paused) {
           setIsLoading(true);
           playPromiseRef.current = videoRef.current.play();
           playPromiseRef.current
             .then(() => {
               if (isMounted) {
                 setIsLoading(false);
+                setIsPlaying(true);
               }
             })
             .catch(error => {
               if (isMounted && error.name !== 'AbortError') {
                 console.warn('Error playing video:', error);
                 setIsLoading(false);
+                setIsPlaying(false);
               }
             });
+        } else {
+          videoRef.current.pause();
+          setIsPlaying(false);
+          playPromiseRef.current = null;
         }
       } catch (error) {
         if (isMounted) {
@@ -344,7 +347,9 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
 
   const toggleMute = () => {
     if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
+      const newMutedState = !videoRef.current.muted;
+      videoRef.current.muted = newMutedState;
+      setIsMuted(newMutedState);
     }
   };
 
