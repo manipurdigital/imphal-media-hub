@@ -25,8 +25,18 @@ const SignupForm = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { signUp } = useAuth();
   const { toast } = useToast();
+
+  // Add error boundary for auth context
+  let signUp = async (email: string, password: string, fullName?: string) => ({ error: { message: 'Authentication not available' } });
+  
+  try {
+    const auth = useAuth();
+    signUp = auth.signUp;
+    console.log('SignupForm: AuthProvider connected successfully');
+  } catch (error) {
+    console.log('SignupForm: AuthProvider not available, using fallback');
+  }
 
   const {
     register,

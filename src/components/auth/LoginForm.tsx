@@ -19,8 +19,18 @@ type LoginFormData = z.infer<typeof loginSchema>;
 const LoginForm = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { signIn } = useAuth();
   const { toast } = useToast();
+
+  // Add error boundary for auth context
+  let signIn = async (email: string, password: string) => ({ error: { message: 'Authentication not available' } });
+  
+  try {
+    const auth = useAuth();
+    signIn = auth.signIn;
+    console.log('LoginForm: AuthProvider connected successfully');
+  } catch (error) {
+    console.log('LoginForm: AuthProvider not available, using fallback');
+  }
 
   const {
     register,
