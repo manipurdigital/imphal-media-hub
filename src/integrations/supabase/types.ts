@@ -449,6 +449,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      fix_video_sources_consistency: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action: string
+          video_id: string
+          video_title: string
+          message: string
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -465,6 +474,16 @@ export type Database = {
         Returns: {
           removed_count: number
           removed_titles: string[]
+        }[]
+      }
+      validate_video_url_accessibility: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          video_id: string
+          video_title: string
+          video_url: string
+          hosting_type: string
+          needs_check: boolean
         }[]
       }
     }

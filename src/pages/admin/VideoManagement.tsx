@@ -7,9 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, Eye, Video, Search, Filter } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Edit, Trash2, Eye, Video, Search, Filter, Activity } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { VideoForm } from '@/components/admin/VideoForm';
+import { VideoHealthDashboard } from '@/components/admin/VideoHealthDashboard';
 
 export const VideoManagement = () => {
   const { toast } = useToast();
@@ -118,6 +120,20 @@ export const VideoManagement = () => {
           Add Video
         </Button>
       </div>
+
+      <Tabs defaultValue="videos" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="videos" className="flex items-center gap-2">
+            <Video className="h-4 w-4" />
+            Videos
+          </TabsTrigger>
+          <TabsTrigger value="health" className="flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Health Dashboard
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="videos" className="space-y-6 mt-6">
 
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -256,6 +272,12 @@ export const VideoManagement = () => {
           </CardContent>
         </Card>
       ) : null}
+        </TabsContent>
+
+        <TabsContent value="health" className="space-y-6 mt-6">
+          <VideoHealthDashboard />
+        </TabsContent>
+      </Tabs>
 
       {/* Video Form Dialog */}
       <Dialog open={showForm} onOpenChange={setShowForm}>

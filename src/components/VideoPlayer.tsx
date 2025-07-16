@@ -65,10 +65,62 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
     hasMultipleResolutions,
   } = useVideoResolutions(isValidVideoId ? videoId : null);
   
-  // Determine effective video URL (current resolution or fallback to videoUrl)
-  const effectiveVideoUrl = (currentResolution?.source_url) ? currentResolution.source_url : videoUrl;
+  // Enhanced URL handling with better validation and fallback
+  const getEffectiveVideoUrl = () => {
+    // If we have a current resolution, use it
+    if (currentResolution?.source_url) {
+      return currentResolution.source_url;
+    }
+    
+    // Fallback to original videoUrl if no resolution available
+    if (videoUrl) {
+      return videoUrl;
+    }
+    
+    return null;
+  };
   
-  // Debug logging
+  const effectiveVideoUrl = getEffectiveVideoUrl();
+  
+  // Enhanced video URL validation
+  const isValidVideoUrl = (url: string | null): boolean => {
+    if (!url) return false;
+    
+    try {
+      const urlObj = new URL(url);
+      
+      // Check for supported video formats
+      const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
+      const hasVideoExtension = videoExtensions.some(ext => 
+        urlObj.pathname.toLowerCase().includes(ext)
+      );
+      
+      // Check if it's a known video hosting service
+      const isYouTubeUrl = /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)/.test(url);
+      const isSupabaseUrl = /^https?:\/\/.*\.supabase\.co\/storage\/v1\/object/.test(url);
+      
+      return hasVideoExtension || isYouTubeUrl || isSupabaseUrl;
+    } catch {
+      return false;
+    }
+  };
+  
+  // Enhanced error tracking
+  const [urlValidationError, setUrlValidationError] = useState<string | null>(null);
+  const [videoLoadError, setVideoLoadError] = useState<string | null>(null);
+  
+  // Validate URL on change
+  useEffect(() => {
+    if (effectiveVideoUrl) {
+      if (!isValidVideoUrl(effectiveVideoUrl)) {
+        setUrlValidationError(`Invalid video URL format: ${effectiveVideoUrl}`);
+      } else {
+        setUrlValidationError(null);
+      }
+    }
+  }, [effectiveVideoUrl]);
+  
+  // Debug logging with enhanced information
   console.log('VideoPlayer Debug:', {
     title,
     videoId,
@@ -77,7 +129,10 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
     effectiveVideoUrl,
     resolutions: resolutions.length,
     resolutionsLoading,
-    resolutionsError
+    resolutionsError,
+    urlValidationError,
+    videoLoadError,
+    isValidUrl: isValidVideoUrl(effectiveVideoUrl)
   });
   
   const isYouTube = effectiveVideoUrl ? isYouTubeUrl(effectiveVideoUrl) : false;
@@ -270,6 +325,7 @@ Video Status: Marked as CORS-blocked for admin review`;
         await updateVideoAccessibilityStatus(videoId, accessibilityStatus);
       }
       
+      setVideoLoadError(errorMessage);
       setError(errorMessage);
       console.error('Video error:', errorMessage, 'URL:', effectiveVideoUrl);
     };
