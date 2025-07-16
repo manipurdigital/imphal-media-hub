@@ -460,6 +460,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      remove_unplayable_videos: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          removed_count: number
+          removed_titles: string[]
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
