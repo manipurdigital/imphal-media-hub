@@ -38,13 +38,11 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [buffered, setBuffered] = useState(0);
   const [isMounted, setIsMounted] = useState(false);
-  const [isSeeking, setIsSeeking] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
   const playPromiseRef = useRef<Promise<void> | null>(null);
-  const seekTimeoutRef = useRef<NodeJS.Timeout>();
   
   const isYouTube = videoUrl ? isYouTubeUrl(videoUrl) : false;
   const youTubeVideoId = isYouTube ? extractYouTubeVideoId(videoUrl!) : null;
@@ -106,9 +104,7 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
     if (!video) return;
 
     const handleTimeUpdate = () => {
-      if (!isSeeking) {
-        setCurrentTime(video.currentTime);
-      }
+      setCurrentTime(video.currentTime);
       
       // Update buffered
       if (video.buffered.length > 0) {
@@ -160,7 +156,7 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
       video.removeEventListener('pause', handlePause);
       video.removeEventListener('volumechange', handleVolumeChange);
     };
-  }, [isSeeking]);
+  }, []);
 
   // Keyboard shortcuts
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -267,11 +263,6 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
         });
         playPromiseRef.current = null;
       }
-      
-      // Clear seek timeout
-      if (seekTimeoutRef.current) {
-        clearTimeout(seekTimeoutRef.current);
-      }
     };
   }, [isOpen, handleKeyDown, handleMouseMove, resetControlsTimeout]);
 
@@ -336,40 +327,13 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
       const newTime = (value[0] / 100) * duration;
       if (isFinite(newTime) && newTime >= 0 && newTime <= duration) {
         try {
-          setIsSeeking(true);
-          setCurrentTime(newTime); // Update UI immediately for smooth feedback
-          
-          // Clear any existing seek timeout
-          if (seekTimeoutRef.current) {
-            clearTimeout(seekTimeoutRef.current);
-          }
-          
-          // Debounce the actual seek operation
-          seekTimeoutRef.current = setTimeout(() => {
-            if (videoRef.current && isMounted) {
-              videoRef.current.currentTime = newTime;
-              setIsSeeking(false);
-            }
-          }, 100);
+          videoRef.current.currentTime = newTime;
+          setCurrentTime(newTime);
         } catch (error) {
           console.warn('Error seeking video:', error);
-          setIsSeeking(false);
         }
       }
     }
-  };
-
-  const handleSeekStart = () => {
-    setIsSeeking(true);
-    setShowControls(true);
-  };
-
-  const handleSeekEnd = () => {
-    // Clear any pending seek timeout and apply final seek
-    if (seekTimeoutRef.current) {
-      clearTimeout(seekTimeoutRef.current);
-    }
-    setIsSeeking(false);
   };
 
   const handleVolumeChange = (value: number[]) => {
@@ -496,11 +460,9 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
                  <Slider
                    value={[duration && isFinite(duration) && duration > 0 ? (currentTime / duration) * 100 : 0]}
                    onValueChange={handleSeek}
-                   onValueCommit={handleSeekEnd}
-                   onPointerDown={handleSeekStart}
                    max={100}
                    step={0.1}
-                   className="w-full cursor-pointer hover:cursor-grab active:cursor-grabbing"
+                   className="w-full cursor-pointer"
                  />
               </div>
               <div className="flex justify-between text-xs text-white/70 mt-1">
