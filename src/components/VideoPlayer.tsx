@@ -126,10 +126,19 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
       setIsLoading(true);
     };
 
+    const handleLoadedMetadata = () => {
+      setDuration(video.duration);
+      setCanPlay(true);
+      setIsLoading(false);
+      setError(null);
+      console.log('Video metadata loaded - duration:', video.duration);
+    };
+
     const handleCanPlay = () => {
       setIsLoading(false);
       setCanPlay(true);
       setError(null);
+      console.log('Video can play - duration:', video.duration);
     };
 
     const handleError = (e: Event) => {
@@ -140,11 +149,13 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
         `Video error: ${target.error.message} (Code: ${target.error.code})` : 
         'Failed to load video. Please check your internet connection and try again.';
       setError(errorMessage);
+      console.error('Video error:', errorMessage);
     };
 
     const handleLoadedData = () => {
       setIsLoading(false);
       setCanPlay(true);
+      console.log('Video data loaded');
     };
 
     const handlePlay = () => {
@@ -164,6 +175,7 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
     video.addEventListener('timeupdate', handleTimeUpdate);
     video.addEventListener('durationchange', handleDurationChange);
     video.addEventListener('loadstart', handleLoadStart);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
     video.addEventListener('canplay', handleCanPlay);
     video.addEventListener('loadeddata', handleLoadedData);
     video.addEventListener('error', handleError);
@@ -175,6 +187,7 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('durationchange', handleDurationChange);
       video.removeEventListener('loadstart', handleLoadStart);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
       video.removeEventListener('canplay', handleCanPlay);
       video.removeEventListener('loadeddata', handleLoadedData);
       video.removeEventListener('error', handleError);
@@ -311,6 +324,32 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
     }
   }, [playbackSpeed]);
 
+  // Initialize video when modal opens
+  useEffect(() => {
+    if (isOpen && videoRef.current && videoUrl && !isYouTube) {
+      const video = videoRef.current;
+      
+      console.log('Initializing video...');
+      
+      // Reset states
+      setError(null);
+      setCanPlay(false);
+      setDuration(0);
+      setCurrentTime(0);
+      setIsLoading(true);
+      
+      // Set initial properties
+      video.volume = volume;
+      video.muted = isMuted;
+      video.playbackRate = playbackSpeed;
+      
+      // Force load video metadata
+      video.load();
+      
+      console.log('Video load() called');
+    }
+  }, [isOpen, videoUrl, isYouTube, volume, isMuted, playbackSpeed]);
+
   const togglePlay = () => {
     if (videoRef.current && isMounted) {
       try {
@@ -355,15 +394,23 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
 
   const handleSeek = (value: number[]) => {
     const video = videoRef.current;
-    if (!video || !isMounted || !canPlay || !duration || duration <= 0) {
-      console.log('Seek blocked - video:', !!video, 'mounted:', isMounted, 'canPlay:', canPlay, 'duration:', duration);
+    if (!video || !isMounted) {
+      console.log('Seek blocked - video:', !!video, 'mounted:', isMounted);
       return;
     }
     
-    const newTime = (value[0] / 100) * duration;
-    console.log('Seeking to:', newTime, 'seconds (', value[0], '% of', duration, 'seconds)');
+    // Use video element's duration if available, otherwise use state duration
+    const videoDuration = video.duration || duration;
     
-    if (isFinite(newTime) && newTime >= 0 && newTime <= duration) {
+    if (!videoDuration || videoDuration <= 0 || !isFinite(videoDuration)) {
+      console.log('Seek blocked - no valid duration. Video duration:', video.duration, 'state duration:', duration);
+      return;
+    }
+    
+    const newTime = (value[0] / 100) * videoDuration;
+    console.log('Seeking to:', newTime, 'seconds (', value[0], '% of', videoDuration, 'seconds)');
+    
+    if (isFinite(newTime) && newTime >= 0 && newTime <= videoDuration) {
       try {
         video.currentTime = newTime;
         console.log('Successfully set video time to:', video.currentTime);
