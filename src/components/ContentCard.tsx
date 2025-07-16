@@ -182,7 +182,12 @@ const ContentCard = ({
             )}
             {castMembers.length > 0 && (
               <p className="text-xs text-muted-foreground">
-                <span className="font-medium">Cast:</span> {castMembers.slice(0, 3).join(', ')}
+                <span className="font-medium">Cast:</span> {castMembers.slice(0, 3).map((member, index) => (
+                  <span key={`${id}-cast-${index}`}>
+                    {index > 0 && ', '}
+                    {member}
+                  </span>
+                ))}
                 {castMembers.length > 3 && <span className="opacity-70"> +{castMembers.length - 3} more</span>}
               </p>
             )}

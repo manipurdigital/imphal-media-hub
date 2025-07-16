@@ -154,11 +154,29 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
         break;
       case 'ArrowLeft':
         e.preventDefault();
-        video.currentTime = Math.max(0, video.currentTime - 10);
+        if (isFinite(video.duration) && video.duration > 0) {
+          const newTime = Math.max(0, video.currentTime - 10);
+          if (isFinite(newTime)) {
+            try {
+              video.currentTime = newTime;
+            } catch (error) {
+              console.warn('Error seeking video:', error);
+            }
+          }
+        }
         break;
       case 'ArrowRight':
         e.preventDefault();
-        video.currentTime = Math.min(video.duration, video.currentTime + 10);
+        if (isFinite(video.duration) && video.duration > 0) {
+          const newTime = Math.min(video.duration, video.currentTime + 10);
+          if (isFinite(newTime)) {
+            try {
+              video.currentTime = newTime;
+            } catch (error) {
+              console.warn('Error seeking video:', error);
+            }
+          }
+        }
         break;
       case 'ArrowUp':
         e.preventDefault();
@@ -227,10 +245,18 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
 
   const togglePlay = () => {
     if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
+      try {
+        if (isPlaying) {
+          videoRef.current.pause();
+        } else {
+          videoRef.current.play().catch(error => {
+            console.warn('Error playing video:', error);
+            setIsLoading(false);
+          });
+        }
+      } catch (error) {
+        console.warn('Error toggling play state:', error);
+        setIsLoading(false);
       }
     }
   };
@@ -242,8 +268,15 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
   };
 
   const handleSeek = (value: number[]) => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = (value[0] / 100) * duration;
+    if (videoRef.current && duration && isFinite(duration) && duration > 0) {
+      const newTime = (value[0] / 100) * duration;
+      if (isFinite(newTime) && newTime >= 0) {
+        try {
+          videoRef.current.currentTime = newTime;
+        } catch (error) {
+          console.warn('Error seeking video:', error);
+        }
+      }
     }
   };
 
@@ -255,8 +288,15 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
   };
 
   const skip = (seconds: number) => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = Math.max(0, Math.min(duration, videoRef.current.currentTime + seconds));
+    if (videoRef.current && duration && isFinite(duration)) {
+      const newTime = Math.max(0, Math.min(duration, videoRef.current.currentTime + seconds));
+      if (isFinite(newTime)) {
+        try {
+          videoRef.current.currentTime = newTime;
+        } catch (error) {
+          console.warn('Error skipping video:', error);
+        }
+      }
     }
   };
 
@@ -283,6 +323,10 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
       ref={containerRef}
       className="fixed inset-0 bg-black z-50 flex items-center justify-center"
       onClick={handleClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="video-player-title"
+      aria-describedby="video-player-description"
     >
       {/* Video Container */}
       <div 
@@ -331,8 +375,8 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-900">
             <div className="text-center text-white">
-              <h2 className="text-3xl font-bold mb-4">{title}</h2>
-              <p className="text-gray-400 mb-8">Video content will be available soon</p>
+              <h2 id="video-player-title" className="text-3xl font-bold mb-4">{title}</h2>
+              <p id="video-player-description" className="text-gray-400 mb-8">Video content will be available soon</p>
               <div className="w-16 h-16 mx-auto bg-white/10 rounded-full flex items-center justify-center">
                 <Play className="w-8 h-8 text-white" />
               </div>
@@ -357,17 +401,17 @@ const VideoPlayer = ({ title, videoUrl, isOpen, onClose }: VideoPlayerProps) => 
                   style={{ width: `${buffered}%`, transform: 'translateY(-50%)' }}
                 />
                 {/* Seek Slider */}
-                <Slider
-                  value={[duration ? (currentTime / duration) * 100 : 0]}
-                  onValueChange={handleSeek}
-                  max={100}
-                  step={0.1}
-                  className="w-full cursor-pointer"
-                />
+                 <Slider
+                   value={[duration && isFinite(duration) && duration > 0 ? (currentTime / duration) * 100 : 0]}
+                   onValueChange={handleSeek}
+                   max={100}
+                   step={0.1}
+                   className="w-full cursor-pointer"
+                 />
               </div>
               <div className="flex justify-between text-xs text-white/70 mt-1">
-                <span>{formatTime(currentTime)}</span>
-                <span>{formatTime(duration)}</span>
+                <span>{formatTime(isFinite(currentTime) ? currentTime : 0)}</span>
+                <span>{formatTime(isFinite(duration) ? duration : 0)}</span>
               </div>
             </div>
 
