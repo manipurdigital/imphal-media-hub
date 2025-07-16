@@ -17,8 +17,8 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (emailOrProvider: string, password?: string, fullName?: string) => Promise<{ error: any }>;
+  signIn: (emailOrProvider: string, password?: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
 }
@@ -95,12 +95,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName?: string) => {
+  const signUp = async (emailOrProvider: string, password?: string, fullName?: string) => {
     try {
+      // Handle OAuth providers
+      if (emailOrProvider === 'google') {
+        const redirectUrl = `${window.location.origin}/`;
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: redirectUrl,
+          }
+        });
+        return { error };
+      }
+
+      // Handle email/password signup
+      if (!password) {
+        return { error: new Error('Password is required for email signup') };
+      }
+
       const redirectUrl = `${window.location.origin}/`;
       
       const { error } = await supabase.auth.signUp({
-        email,
+        email: emailOrProvider,
         password,
         options: {
           emailRedirectTo: redirectUrl,
@@ -116,10 +133,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (emailOrProvider: string, password?: string) => {
     try {
+      // Handle OAuth providers
+      if (emailOrProvider === 'google') {
+        const redirectUrl = `${window.location.origin}/`;
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: redirectUrl,
+          }
+        });
+        return { error };
+      }
+
+      // Handle email/password signin
+      if (!password) {
+        return { error: new Error('Password is required for email signin') };
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: emailOrProvider,
         password,
       });
 
