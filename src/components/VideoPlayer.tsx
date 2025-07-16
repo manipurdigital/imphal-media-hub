@@ -121,6 +121,20 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  // Check if URL is likely to have CORS issues
+  const hasLikelyCORSIssues = useCallback((url: string): boolean => {
+    // Google Cloud Storage public URLs typically have CORS restrictions
+    const corsProblematicDomains = [
+      'commondatastorage.googleapis.com',
+      'storage.googleapis.com',
+      'cloud.google.com',
+      'amazonaws.com', // Some AWS buckets
+      'cloudfront.net' // Some CloudFront distributions
+    ];
+    
+    return corsProblematicDomains.some(domain => url.includes(domain));
+  }, []);
+
   // Video event handlers
   const handleVideoEvents = useCallback(() => {
     const video = videoRef.current;
@@ -163,11 +177,36 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
       setIsLoading(false);
       setCanPlay(false);
       const target = e.target as HTMLVideoElement;
-      const errorMessage = target.error ? 
-        `Video error: ${target.error.message} (Code: ${target.error.code})` : 
-        'Failed to load video. Please check your internet connection and try again.';
+      let errorMessage = 'Failed to load video.';
+      
+      if (target.error) {
+        switch (target.error.code) {
+          case MediaError.MEDIA_ERR_ABORTED:
+            errorMessage = 'Video playback was aborted.';
+            break;
+          case MediaError.MEDIA_ERR_NETWORK:
+            errorMessage = 'Network error occurred while loading video.';
+            break;
+          case MediaError.MEDIA_ERR_DECODE:
+            errorMessage = 'Video format is not supported by your browser.';
+            break;
+          case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+            errorMessage = 'Video source is not accessible. This may be due to CORS restrictions or the video being unavailable.';
+            break;
+          default:
+            errorMessage = `Video error: ${target.error.message} (Code: ${target.error.code})`;
+        }
+      }
+      
+      // Check if this might be a CORS issue using our detection function
+      if (effectiveVideoUrl && !effectiveVideoUrl.includes('youtube.com') && !effectiveVideoUrl.includes('youtu.be')) {
+        if (target.error?.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED || hasLikelyCORSIssues(effectiveVideoUrl)) {
+          errorMessage = `Video cannot be played due to CORS restrictions. The video is hosted on ${new URL(effectiveVideoUrl).hostname} which doesn't allow direct video playback from external websites. Please contact the administrator to move the video to a compatible hosting service.`;
+        }
+      }
+      
       setError(errorMessage);
-      console.error('Video error:', errorMessage);
+      console.error('Video error:', errorMessage, 'URL:', effectiveVideoUrl);
     };
 
     const handleLoadedData = () => {
@@ -213,7 +252,7 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
       video.removeEventListener('pause', handlePause);
       video.removeEventListener('volumechange', handleVolumeChange);
     };
-  }, []);
+  }, [hasLikelyCORSIssues]);
 
   // Keyboard shortcuts
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -342,12 +381,34 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
     }
   }, [playbackSpeed]);
 
+
+  // Test video URL accessibility
+  const testVideoUrl = useCallback(async (url: string): Promise<{ accessible: boolean; error?: string }> => {
+    try {
+      const response = await fetch(url, { 
+        method: 'HEAD',
+        mode: 'cors',
+        cache: 'no-cache'
+      });
+      return { accessible: response.ok };
+    } catch (error: any) {
+      console.warn('Video URL test failed:', error);
+      
+      // Provide more specific error information
+      if (error.name === 'TypeError' && error.message.includes('CORS')) {
+        return { accessible: false, error: 'CORS_ERROR' };
+      }
+      
+      return { accessible: false, error: 'NETWORK_ERROR' };
+    }
+  }, []);
+
   // Initialize video when modal opens (only when video source changes)
   useEffect(() => {
     if (isOpen && videoRef.current && effectiveVideoUrl && !isYouTube) {
       const video = videoRef.current;
       
-      console.log('Initializing video...');
+      console.log('Initializing video with URL:', effectiveVideoUrl);
       
       // Reset states
       setError(null);
@@ -356,17 +417,54 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
       setCurrentTime(0);
       setIsLoading(true);
       
-      // Set initial properties immediately
-      video.volume = volume;
-      video.muted = isMuted;
-      video.playbackRate = playbackSpeed;
+      // Test video accessibility first for external URLs
+      const initializeVideo = async () => {
+        // Skip testing for local or trusted sources
+        const isLocalOrTrusted = effectiveVideoUrl.startsWith('blob:') || 
+                                effectiveVideoUrl.startsWith('data:') ||
+                                effectiveVideoUrl.includes('supabase.co');
+        
+        if (!isLocalOrTrusted) {
+          console.log('Testing video URL accessibility...');
+          
+          // First check if the URL is likely to have CORS issues
+          if (hasLikelyCORSIssues(effectiveVideoUrl)) {
+            setError(`Video cannot be played due to CORS restrictions. The video is hosted on ${new URL(effectiveVideoUrl).hostname} which doesn't allow direct video playback from external websites. Please contact the administrator to move the video to a compatible hosting service.`);
+            setIsLoading(false);
+            return;
+          }
+          
+          const { accessible, error: testError } = await testVideoUrl(effectiveVideoUrl);
+          
+          if (!accessible) {
+            let errorMessage = 'Video source is not accessible.';
+            
+            if (testError === 'CORS_ERROR') {
+              errorMessage = 'Video cannot be played due to CORS restrictions. The video hosting service needs to be configured to allow cross-origin requests.';
+            } else if (testError === 'NETWORK_ERROR') {
+              errorMessage = 'Network error occurred while trying to access the video. Please check your internet connection and try again.';
+            }
+            
+            setError(errorMessage);
+            setIsLoading(false);
+            return;
+          }
+        }
+        
+        // Set initial properties immediately
+        video.volume = volume;
+        video.muted = isMuted;
+        video.playbackRate = playbackSpeed;
+        
+        // Force load video metadata
+        video.load();
+        
+        console.log('Video initialized with properties - volume:', volume, 'muted:', isMuted, 'playbackRate:', playbackSpeed);
+      };
       
-      // Force load video metadata
-      video.load();
-      
-      console.log('Video initialized with properties - volume:', volume, 'muted:', isMuted, 'playbackRate:', playbackSpeed);
+      initializeVideo();
     }
-  }, [isOpen, effectiveVideoUrl, isYouTube]);
+  }, [isOpen, effectiveVideoUrl, isYouTube, testVideoUrl]);
 
   // Update video mute state
   useEffect(() => {
@@ -562,15 +660,27 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
         {/* Error Display */}
         {error && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-40">
-            <div className="text-center text-white max-w-md mx-4">
+            <div className="text-center text-white max-w-lg mx-4">
               <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">Playback Error</h3>
               <p className="text-gray-300 mb-4">{error}</p>
+              
+              {/* Additional help for CORS issues */}
+              {error.includes('CORS') && (
+                <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 mb-4 text-sm">
+                  <p className="text-yellow-200">
+                    <strong>Technical Info:</strong> This video is hosted on an external server that doesn't allow direct playback. 
+                    The video needs to be configured with proper CORS headers or moved to a compatible hosting service.
+                  </p>
+                </div>
+              )}
+              
               <div className="flex space-x-3 justify-center">
                 <Button
                   variant="outline"
                   onClick={() => {
                     setError(null);
+                    setIsLoading(true);
                     if (videoRef.current) {
                       videoRef.current.load();
                     }
@@ -579,6 +689,22 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
                 >
                   Retry
                 </Button>
+                {/* Show fallback option for videos with resolutions */}
+                {hasMultipleResolutions && resolutions.length > 1 && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setError(null);
+                      const nextResolution = resolutions.find(r => r.id !== currentResolution?.id);
+                      if (nextResolution) {
+                        switchResolution(nextResolution);
+                      }
+                    }}
+                    className="text-white border-white/30 hover:bg-white/10"
+                  >
+                    Try Different Quality
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   onClick={handleClose}
@@ -612,6 +738,13 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
               playsInline
             >
               <source src={effectiveVideoUrl} type="video/mp4" />
+              {/* Add additional source formats for better compatibility */}
+              {effectiveVideoUrl.includes('.mp4') && (
+                <source src={effectiveVideoUrl.replace('.mp4', '.webm')} type="video/webm" />
+              )}
+              {effectiveVideoUrl.includes('.mp4') && (
+                <source src={effectiveVideoUrl.replace('.mp4', '.ogg')} type="video/ogg" />
+              )}
               Your browser does not support the video tag.
             </video>
           )

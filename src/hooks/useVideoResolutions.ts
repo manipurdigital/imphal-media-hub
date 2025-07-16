@@ -45,10 +45,14 @@ export const useVideoResolutions = (videoId: string | null) => {
         const defaultResolution = data?.find(r => r.is_default) || data?.[0];
         if (defaultResolution) {
           setCurrentResolution(defaultResolution);
+        } else {
+          // If no video sources found, this will fall back to the original videoUrl
+          console.log('No video sources found for video:', videoId);
         }
       } catch (err) {
         console.error('Error fetching video resolutions:', err);
         setError('Failed to load video resolutions');
+        // Continue with fallback to original videoUrl
       } finally {
         setIsLoading(false);
       }
