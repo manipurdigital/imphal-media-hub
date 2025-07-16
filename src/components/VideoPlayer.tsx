@@ -354,7 +354,8 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
   };
 
   const debouncedSeek = useDebounceCallback((newTime: number) => {
-    if (videoRef.current && isMounted && duration && isFinite(duration) && duration > 0) {
+    if (videoRef.current && isMounted && canPlay) {
+      console.log('Seeking to time:', newTime, 'Duration:', duration);
       if (isFinite(newTime) && newTime >= 0 && newTime <= duration) {
         try {
           videoRef.current.currentTime = newTime;
@@ -363,11 +364,12 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
         }
       }
     }
-  }, 100);
+  }, 50);
 
   const handleSeek = (value: number[]) => {
-    if (duration && isFinite(duration) && duration > 0) {
+    if (duration && isFinite(duration) && duration > 0 && canPlay) {
       const newTime = (value[0] / 100) * duration;
+      console.log('Seek slider value:', value[0], 'New time:', newTime);
       setCurrentTime(newTime); // Immediate UI update
       debouncedSeek(newTime); // Debounced actual seek
     }
@@ -377,6 +379,7 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
     setVolume(value[0] / 100);
     if (videoRef.current) {
       videoRef.current.muted = false;
+      setIsMuted(false);
     }
   };
 
