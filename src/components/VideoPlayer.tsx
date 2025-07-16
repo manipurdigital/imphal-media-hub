@@ -610,18 +610,22 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose }: VideoPlayerProps
                 {/* Playback Speed */}
                 <Select value={playbackSpeed.toString()} onValueChange={(value) => {
                   console.log('Playback speed changed to:', value);
-                  setPlaybackSpeed(Number(value));
+                  const newSpeed = Number(value);
+                  setPlaybackSpeed(newSpeed);
+                  if (videoRef.current) {
+                    videoRef.current.playbackRate = newSpeed;
+                  }
                 }}>
-                  <SelectTrigger className="w-16 h-8 text-white border-white/30 bg-black/50 hover:bg-black/70">
+                  <SelectTrigger className="w-16 h-8 text-white border-white/30 bg-black/50 hover:bg-black/70 z-50">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-black/90 border-white/30">
-                    <SelectItem value="0.5" className="text-white hover:bg-white/20">0.5x</SelectItem>
-                    <SelectItem value="0.75" className="text-white hover:bg-white/20">0.75x</SelectItem>
-                    <SelectItem value="1" className="text-white hover:bg-white/20">1x</SelectItem>
-                    <SelectItem value="1.25" className="text-white hover:bg-white/20">1.25x</SelectItem>
-                    <SelectItem value="1.5" className="text-white hover:bg-white/20">1.5x</SelectItem>
-                    <SelectItem value="2" className="text-white hover:bg-white/20">2x</SelectItem>
+                  <SelectContent className="bg-black/90 border-white/30 z-[60]">
+                    <SelectItem value="0.5" className="text-white hover:bg-white/20 focus:bg-white/20">0.5x</SelectItem>
+                    <SelectItem value="0.75" className="text-white hover:bg-white/20 focus:bg-white/20">0.75x</SelectItem>
+                    <SelectItem value="1" className="text-white hover:bg-white/20 focus:bg-white/20">1x</SelectItem>
+                    <SelectItem value="1.25" className="text-white hover:bg-white/20 focus:bg-white/20">1.25x</SelectItem>
+                    <SelectItem value="1.5" className="text-white hover:bg-white/20 focus:bg-white/20">1.5x</SelectItem>
+                    <SelectItem value="2" className="text-white hover:bg-white/20 focus:bg-white/20">2x</SelectItem>
                   </SelectContent>
                 </Select>
 
