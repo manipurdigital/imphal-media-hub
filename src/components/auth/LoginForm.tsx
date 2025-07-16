@@ -22,6 +22,8 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [resendingEmail, setResendingEmail] = useState(false);
   const [lastEmailSent, setLastEmailSent] = useState<string>('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
   const { toast } = useToast();
 
   // Add error boundary for auth context
@@ -139,6 +141,38 @@ const LoginForm = () => {
     }
   };
 
+  const handleForgotPassword = async (email: string) => {
+    setResetPasswordLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?tab=reset-password`
+      });
+
+      if (error) {
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to send reset password email.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Reset email sent!',
+          description: 'Check your email for password reset instructions.',
+        });
+        setShowForgotPassword(false);
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setResetPasswordLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <Button
@@ -232,7 +266,69 @@ const LoginForm = () => {
           'Sign In'
         )}
       </Button>
+      
+      <div className="text-center">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowForgotPassword(!showForgotPassword)}
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          Forgot your password?
+        </Button>
+      </div>
     </form>
+
+    {showForgotPassword && (
+      <div className="mt-4 p-4 border rounded-lg bg-muted/50">
+        <h3 className="text-sm font-medium mb-3">Reset Password</h3>
+        <p className="text-sm text-muted-foreground mb-3">
+          Enter your email address and we'll send you a link to reset your password.
+        </p>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            const email = formData.get('resetEmail') as string;
+            if (email) handleForgotPassword(email);
+          }}
+          className="space-y-3"
+        >
+          <Input
+            name="resetEmail"
+            type="email"
+            placeholder="Enter your email"
+            required
+          />
+          <div className="flex gap-2">
+            <Button
+              type="submit"
+              size="sm"
+              disabled={resetPasswordLoading}
+              className="flex-1"
+            >
+              {resetPasswordLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                'Send Reset Link'
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowForgotPassword(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </div>
+    )}
 
     {lastEmailSent && (
       <div className="mt-4 p-4 border rounded-lg bg-muted/50">
