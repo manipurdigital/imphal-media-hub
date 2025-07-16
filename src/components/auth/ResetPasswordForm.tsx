@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const resetPasswordSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
@@ -24,9 +25,84 @@ const ResetPasswordForm = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [sessionValid, setSessionValid] = useState<boolean | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  // Check if user has a valid session for password reset
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session check error:', error);
+          setSessionValid(false);
+          return;
+        }
+
+        if (!session) {
+          console.log('No session found');
+          setSessionValid(false);
+          return;
+        }
+
+        // Check if this is a recovery session
+        const isRecoverySession = session.user?.aud === 'authenticated' && 
+                                 (session.user?.recovery_sent_at || 
+                                  session.user?.email_change_sent_at ||
+                                  session.user?.app_metadata?.provider === 'recovery');
+        
+        console.log('Session check:', { 
+          hasSession: !!session, 
+          userAud: session.user?.aud,
+          recoveryInfo: {
+            recovery_sent_at: session.user?.recovery_sent_at,
+            email_change_sent_at: session.user?.email_change_sent_at,
+            provider: session.user?.app_metadata?.provider
+          }
+        });
+
+        setSessionValid(true);
+      } catch (error) {
+        console.error('Unexpected error checking session:', error);
+        setSessionValid(false);
+      }
+    };
+
+    checkSession();
+  }, []);
+
+  // Show loading while checking session
+  if (sessionValid === null) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Verifying reset link...</span>
+      </div>
+    );
+  }
+
+  // Show error if session is invalid
+  if (!sessionValid) {
+    return (
+      <div className="space-y-4">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Your password reset link has expired or is invalid. Please request a new password reset.
+          </AlertDescription>
+        </Alert>
+        <Button
+          onClick={() => navigate('/auth?tab=login')}
+          className="w-full"
+        >
+          Back to Sign In
+        </Button>
+      </div>
+    );
+  }
 
   const {
     register,
@@ -40,17 +116,21 @@ const ResetPasswordForm = () => {
     setLoading(true);
 
     try {
+      console.log('Attempting password update...');
+      
       const { error } = await supabase.auth.updateUser({
         password: data.password
       });
 
       if (error) {
+        console.error('Password update error:', error);
         toast({
           title: 'Error',
           description: error.message || 'Failed to reset password.',
           variant: 'destructive',
         });
       } else {
+        console.log('Password updated successfully');
         toast({
           title: 'Password updated!',
           description: 'Your password has been successfully updated.',
@@ -59,6 +139,7 @@ const ResetPasswordForm = () => {
         navigate('/auth?tab=login', { replace: true });
       }
     } catch (error) {
+      console.error('Unexpected error during password update:', error);
       toast({
         title: 'Error',
         description: 'An unexpected error occurred. Please try again.',
