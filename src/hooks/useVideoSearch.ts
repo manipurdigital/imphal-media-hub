@@ -50,11 +50,13 @@ export const useVideoSearch = () => {
     setError(null);
 
     try {
+      console.log('Search query:', query, 'Filters:', filters);
+      
       let searchQuery = supabase
         .from('videos')
         .select(`
           *,
-          video_categories!inner (
+          video_categories (
             categories (
               id,
               name,
@@ -87,10 +89,6 @@ export const useVideoSearch = () => {
       }
 
       // Apply filters
-      if (filters?.category) {
-        searchQuery = searchQuery.eq('video_categories.categories.slug', filters.category);
-      }
-
       if (filters?.content_type) {
         searchQuery = searchQuery.eq('content_type', filters.content_type);
       }
@@ -103,19 +101,47 @@ export const useVideoSearch = () => {
         .order('created_at', { ascending: false })
         .limit(20);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase search error:', error);
+        throw error;
+      }
+
+      console.log('Raw search results:', data);
+
+      if (!data || data.length === 0) {
+        console.log('No videos found');
+        setVideos([]);
+        return;
+      }
 
       // Transform the data to match our interface
-      const transformedData: VideoSearchResult[] = data?.map((video: any) => ({
+      const transformedData: VideoSearchResult[] = data.map((video: any) => ({
         ...video,
         categories: video.video_categories?.map((vc: any) => vc.categories).filter(Boolean) || [],
         collections: video.video_collections?.map((vc: any) => vc.collections).filter(Boolean) || [],
         tags: video.video_tags?.map((vt: any) => vt.tags).filter(Boolean) || []
-      })) || [];
+      }));
 
-      setVideos(transformedData);
+      // Apply category filter after data transformation if needed
+      let filteredData = transformedData;
+      if (filters?.category) {
+        filteredData = transformedData.filter(video => 
+          video.categories.some(cat => cat.slug === filters.category)
+        );
+      }
+
+      // Apply collection filter after data transformation if needed
+      if (filters?.collection) {
+        filteredData = filteredData.filter(video => 
+          video.collections.some(col => col.slug === filters.collection)
+        );
+      }
+
+      console.log('Transformed and filtered results:', filteredData);
+      setVideos(filteredData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Search error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred while searching');
     } finally {
       setLoading(false);
     }
