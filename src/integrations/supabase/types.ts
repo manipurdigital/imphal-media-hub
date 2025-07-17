@@ -83,6 +83,84 @@ export type Database = {
         }
         Relationships: []
       }
+      plan_feature_assignments: {
+        Row: {
+          created_at: string
+          feature_id: string
+          feature_value: Json
+          id: string
+          plan_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          feature_id: string
+          feature_value: Json
+          id?: string
+          plan_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          feature_id?: string
+          feature_value?: Json
+          id?: string
+          plan_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_feature_assignments_feature_id_fkey"
+            columns: ["feature_id"]
+            isOneToOne: false
+            referencedRelation: "plan_features"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_feature_assignments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_features: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          feature_type: Database["public"]["Enums"]["feature_type"]
+          id: string
+          is_active: boolean
+          name: string
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          feature_type?: Database["public"]["Enums"]["feature_type"]
+          id?: string
+          is_active?: boolean
+          name: string
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          feature_type?: Database["public"]["Enums"]["feature_type"]
+          id?: string
+          is_active?: boolean
+          name?: string
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -137,6 +215,51 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          billing_cycle: Database["public"]["Enums"]["billing_cycle"]
+          created_at: string
+          currency: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          is_featured: boolean
+          name: string
+          price: number
+          stripe_price_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
+          created_at?: string
+          currency?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          name: string
+          price: number
+          stripe_price_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          billing_cycle?: Database["public"]["Enums"]["billing_cycle"]
+          created_at?: string
+          currency?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          name?: string
+          price?: number
+          stripe_price_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -489,8 +612,10 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      billing_cycle: "monthly" | "yearly" | "one-time"
       content_status: "draft" | "published" | "archived"
       content_type: "movie" | "series" | "documentary" | "short" | "trailer"
+      feature_type: "boolean" | "number" | "text"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -619,8 +744,10 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      billing_cycle: ["monthly", "yearly", "one-time"],
       content_status: ["draft", "published", "archived"],
       content_type: ["movie", "series", "documentary", "short", "trailer"],
+      feature_type: ["boolean", "number", "text"],
     },
   },
 } as const

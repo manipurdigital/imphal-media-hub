@@ -7,7 +7,9 @@ import {
   Tags, 
   Settings,
   BarChart3,
-  Shield
+  Shield,
+  CreditCard,
+  Star
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -41,6 +43,16 @@ const sidebarItems = [
     title: 'Categories',
     href: '/admin/categories',
     icon: Tags,
+  },
+  {
+    title: 'Subscription Plans',
+    href: '/admin/subscription-plans',
+    icon: CreditCard,
+  },
+  {
+    title: 'Plan Features',
+    href: '/admin/plan-features',
+    icon: Star,
   },
   {
     title: 'Analytics',

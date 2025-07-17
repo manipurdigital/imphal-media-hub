@@ -15,6 +15,8 @@ import { CategoriesManagement } from "./pages/admin/CategoriesManagement";
 import { Analytics } from "./pages/admin/Analytics";
 import { Settings } from "./pages/admin/Settings";
 import VideoAccessibility from "./pages/admin/VideoAccessibility";
+import { SubscriptionPlansManagement } from "./pages/admin/SubscriptionPlansManagement";
+import { PlanFeaturesManagement } from "./pages/admin/PlanFeaturesManagement";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import VerificationPending from "./components/auth/VerificationPending";
@@ -83,6 +85,20 @@ const App = () => (
               <AdminRoute>
                 <AdminLayout>
                   <CategoriesManagement />
+                </AdminLayout>
+              </AdminRoute>
+            } />
+            <Route path="/admin/subscription-plans" element={
+              <AdminRoute>
+                <AdminLayout>
+                  <SubscriptionPlansManagement />
+                </AdminLayout>
+              </AdminRoute>
+            } />
+            <Route path="/admin/plan-features" element={
+              <AdminRoute>
+                <AdminLayout>
+                  <PlanFeaturesManagement />
                 </AdminLayout>
               </AdminRoute>
             } />
