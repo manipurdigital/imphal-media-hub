@@ -53,7 +53,7 @@ const Navigation: React.FC = () => {
       <div className="flex items-center justify-between w-full">
         {/* Logo */}
         <Link to="/" className="text-red-600 text-2xl font-bold tracking-tight hover:text-red-500 transition-colors">
-          KANGLEIFLIX
+          IMOINU
         </Link>
 
         {/* Desktop Navigation */}
@@ -112,7 +112,7 @@ const Navigation: React.FC = () => {
                      className="hover:bg-white/10 cursor-pointer focus:bg-white/10"
                    >
                      <LogOut className="mr-2 h-4 w-4" />
-                     Sign out of KangleiFlix
+                      Sign out of Imoinu
                    </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -163,7 +163,7 @@ const Navigation: React.FC = () => {
                        }}
                        className="text-left text-white hover:text-white/80 transition-colors"
                      >
-                       Sign out of KangleiFlix
+                       Sign out of Imoinu
                      </button>
                    </>
                  )}

@@ -45,7 +45,7 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground">KangleiFlix</h1>
+          <h1 className="text-3xl font-bold text-foreground">Imoinu</h1>
           <p className="text-muted-foreground mt-2">Your premium streaming experience</p>
         </div>
 
@@ -53,7 +53,7 @@ const Auth = () => {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">
               {activeTab === 'login' && 'Welcome Back'}
-              {activeTab === 'signup' && 'Join KangleiFlix'}
+              {activeTab === 'signup' && 'Join Imoinu'}
               {activeTab === 'reset-password' && 'Reset Password'}
             </CardTitle>
             <CardDescription className="text-center">

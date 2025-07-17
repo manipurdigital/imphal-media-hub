@@ -20,7 +20,7 @@ interface OriginalsItem {
   trailerUrl: string;
 }
 
-const KangleiFlixOriginalsSection = () => {
+const ImoinuOriginalsSection = () => {
   const [originalsItems, setOriginalsItems] = useState<OriginalsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -38,11 +38,11 @@ const KangleiFlixOriginalsSection = () => {
   useEffect(() => {
     const fetchOriginalsContent = async () => {
       try {
-        // First get the KangleiFlix Originals collection
+        // First get the Imoinu Originals collection
         const { data: collection, error: collectionError } = await supabase
           .from('collections')
           .select('id')
-          .eq('slug', 'kangleiflix-originals')
+          .eq('slug', 'imoinu-originals')
           .single();
 
         if (collectionError) throw collectionError;
@@ -84,10 +84,10 @@ const KangleiFlixOriginalsSection = () => {
 
         setOriginalsItems(formattedItems);
       } catch (error) {
-        console.error('Error fetching KangleiFlix Originals:', error);
+        console.error('Error fetching Imoinu Originals:', error);
         toast({
           title: "Error",
-          description: "Failed to load KangleiFlix Originals",
+          description: "Failed to load Imoinu Originals",
           variant: "destructive"
         });
       } finally {
@@ -115,18 +115,18 @@ const KangleiFlixOriginalsSection = () => {
 
   return (
     <div className="relative">
-      {/* KangleiFlix Originals have a special badge/styling */}
+      {/* Imoinu Originals have a special badge/styling */}
       <div className="absolute -top-2 left-4 z-10">
         <div className="bg-gradient-to-r from-primary to-primary-glow px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg">
           ORIGINAL
         </div>
       </div>
       <ContentCarousel
-        title="KangleiFlix Originals"
+        title="Imoinu Originals"
         items={originalsItems}
       />
     </div>
   );
 };
 
-export default KangleiFlixOriginalsSection;
+export default ImoinuOriginalsSection;

@@ -6,7 +6,7 @@ import SearchSection from '@/components/SearchSection';
 import { useVideoSearch, VideoSearchResult } from '@/hooks/useVideoSearch';
 import { useCollections } from '@/hooks/useCollections';
 import { useCategories } from '@/hooks/useCategories';
-import KangleiFlixOriginalsSection from '@/components/KangleiFlixOriginalsSection';
+import ImoinuOriginalsSection from '@/components/ImoinuOriginalsSection';
 import TrendingSection from '@/components/TrendingSection';
 import RecentlyAddedSection from '@/components/RecentlyAddedSection';
 import TopRatedSection from '@/components/TopRatedSection';
@@ -217,7 +217,7 @@ const Index = () => {
           // Home Page Content
           <>
             {/* Enhanced Netflix-Style Sections */}
-            <KangleiFlixOriginalsSection />
+            <ImoinuOriginalsSection />
             <TrendingSection />
             <RecentlyAddedSection />
             <TopRatedSection />
@@ -259,9 +259,9 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-lg font-semibold text-white mb-4">KangleiFlix</h3>
+              <h3 className="text-lg font-semibold text-white mb-4">Imoinu</h3>
               <p className="text-gray-400 text-sm">
-                Your premier destination for entertainment. Stream thousands of movies and shows.
+                Your premier destination for entertainment inspired by Manipuri culture. Stream thousands of movies and shows.
               </p>
             </div>
             <div>
@@ -293,7 +293,7 @@ const Index = () => {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-            © 2024 KangleiFlix OTT Platform. All rights reserved.
+            © 2024 Imoinu OTT Platform. All rights reserved.
           </div>
         </div>
       </footer>

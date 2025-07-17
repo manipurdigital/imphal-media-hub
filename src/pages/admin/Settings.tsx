@@ -15,7 +15,7 @@ export const Settings = () => {
   const [saving, setSaving] = useState(false);
   
   const [settings, setSettings] = useState({
-    platformName: 'KangleiFlix',
+    platformName: 'Imoinu',
     platformDescription: 'Premium OTT Streaming Platform',
     maintenanceMode: false,
     requireVerification: true,
@@ -49,7 +49,7 @@ export const Settings = () => {
         }, {} as Record<string, any>);
 
         setSettings({
-          platformName: settingsMap.platform_name || 'KangleiFlix',
+          platformName: settingsMap.platform_name || 'Imoinu',
           platformDescription: settingsMap.platform_description || 'Premium OTT Streaming Platform',
           maintenanceMode: settingsMap.maintenance_mode || false,
           requireVerification: settingsMap.require_verification || true,
