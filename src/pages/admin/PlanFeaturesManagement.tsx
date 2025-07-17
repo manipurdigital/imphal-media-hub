@@ -20,7 +20,7 @@ interface PlanFeature {
   updated_at: string;
 }
 
-export const PlanFeaturesManagement = () => {
+const PlanFeaturesManagement = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingFeature, setEditingFeature] = useState<PlanFeature | null>(null);
   const { toast } = useToast();
@@ -270,3 +270,5 @@ export const PlanFeaturesManagement = () => {
     </div>
   );
 };
+
+export default PlanFeaturesManagement;

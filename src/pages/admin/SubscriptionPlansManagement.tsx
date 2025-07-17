@@ -24,7 +24,7 @@ interface SubscriptionPlan {
   updated_at: string;
 }
 
-export const SubscriptionPlansManagement = () => {
+const SubscriptionPlansManagement = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
   const [assigningFeatures, setAssigningFeatures] = useState<SubscriptionPlan | null>(null);
@@ -303,3 +303,5 @@ export const SubscriptionPlansManagement = () => {
     </div>
   );
 };
+
+export default SubscriptionPlansManagement;
