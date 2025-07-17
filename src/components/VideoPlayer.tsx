@@ -66,6 +66,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ title, videoUrl, isOpen, onCl
         fill: true,
         playbackRates: [0.5, 1, 1.25, 1.5, 2],
         preload: 'metadata',
+        language: 'en',
+        controlBar: {
+          volumePanel: {
+            inline: false
+          },
+          muteToggle: true,
+          volumeControl: true,
+          fullscreenToggle: true,
+          playbackRateMenuButton: true,
+          pictureInPictureToggle: true
+        },
         sources: [{
           src: videoUrl,
           type: 'video/mp4'
