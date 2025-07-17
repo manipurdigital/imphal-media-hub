@@ -36,7 +36,7 @@ export const SubscriptionPlanForm: React.FC<SubscriptionPlanFormProps> = ({
     name: plan?.name || '',
     description: plan?.description || '',
     price: plan?.price || 0,
-    currency: plan?.currency || 'USD',
+    currency: plan?.currency || 'INR',
     billing_cycle: plan?.billing_cycle || 'monthly',
     stripe_price_id: plan?.stripe_price_id || '',
     is_active: plan?.is_active ?? true,
@@ -49,17 +49,20 @@ export const SubscriptionPlanForm: React.FC<SubscriptionPlanFormProps> = ({
 
   const savePlanMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
+      // Ensure currency is always INR
+      const planData = { ...data, currency: 'INR' };
+      
       if (plan) {
         const { error } = await supabase
           .from('subscription_plans')
-          .update(data)
+          .update(planData)
           .eq('id', plan.id);
         
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('subscription_plans')
-          .insert([data]);
+          .insert([planData]);
         
         if (error) throw error;
       }
@@ -138,38 +141,18 @@ export const SubscriptionPlanForm: React.FC<SubscriptionPlanFormProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="price">Price *</Label>
+              <Label htmlFor="price">Price (₹) *</Label>
               <Input
                 id="price"
                 type="number"
                 step="0.01"
                 value={formData.price}
                 onChange={(e) => handleInputChange('price', parseFloat(e.target.value) || 0)}
-                placeholder="9.99"
+                placeholder="999.00"
                 required
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="currency">Currency</Label>
-              <Select
-                value={formData.currency}
-                onValueChange={(value) => handleInputChange('currency', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="USD">USD ($)</SelectItem>
-                  <SelectItem value="EUR">EUR (€)</SelectItem>
-                  <SelectItem value="GBP">GBP (£)</SelectItem>
-                  <SelectItem value="JPY">JPY (¥)</SelectItem>
-                  <SelectItem value="CAD">CAD ($)</SelectItem>
-                  <SelectItem value="AUD">AUD ($)</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="space-y-2">
