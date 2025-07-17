@@ -52,8 +52,17 @@ const Index = () => {
   const { categories } = useCategories();
 
   useEffect(() => {
-    getAllVideos();
-  }, []);
+    // Check for search parameter in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchParam = urlParams.get('search');
+    if (searchParam) {
+      setSearchQuery(searchParam);
+      setShowSearch(true);
+      searchVideos(searchParam);
+    } else {
+      getAllVideos();
+    }
+  }, [searchVideos, getAllVideos]);
 
   const formatDuration = (seconds: number | null): string => {
     if (!seconds) return 'N/A';
@@ -117,6 +126,8 @@ const Index = () => {
   const handleBackToHome = () => {
     setShowSearch(false);
     setSearchQuery('');
+    // Clear URL parameters
+    window.history.replaceState({}, '', window.location.pathname);
     getAllVideos();
   };
 
