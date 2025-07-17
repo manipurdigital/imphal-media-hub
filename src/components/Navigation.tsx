@@ -64,10 +64,10 @@ const Navigation = () => {
 
   return (
     <nav className="fixed top-0 w-full z-50 netflix-nav px-4 sm:px-6 lg:px-8">
-      <div className="flex items-center justify-between h-16">
+      <div className="flex items-center justify-between h-16 animate-fade-in-scale">
         {/* Logo */}
         <div className="flex items-center space-x-8">
-          <Link to="/" className="netflix-logo text-primary font-bold text-2xl tracking-tight">
+          <Link to="/" className="netflix-logo text-primary font-bold text-2xl tracking-tight hover:scale-105 transition-transform duration-300">
             KangleiFlix
           </Link>
           
@@ -97,22 +97,27 @@ const Navigation = () => {
         <div className="flex items-center space-x-4">
           {user ? (
             <>
-              {/* Search - Only show if authenticated */}
-              <div className="relative hidden sm:block">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              {/* Enhanced Search - Only show if authenticated */}
+              <div className="relative hidden sm:block group">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 group-focus-within:text-primary transition-colors duration-300" />
                 <input
                   type="text"
-                  placeholder="Titles, people, genres"
+                  placeholder="Search movies, shows, actors..."
                   className="pl-10 pr-4 py-2 bg-background/20 backdrop-blur-md border border-border/30 rounded-lg 
                            transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50 
                            focus:border-primary/50 placeholder:text-muted-foreground text-sm w-64
-                           hover:bg-background/30 hover:border-border/50"
+                           hover:bg-background/30 hover:border-border/50 focus:w-80 focus:bg-background/40
+                           group-hover:shadow-lg group-focus-within:shadow-xl"
+                  onFocus={(e) => e.target.parentElement?.classList.add('animate-fade-in-scale')}
+                  onBlur={(e) => e.target.parentElement?.classList.remove('animate-fade-in-scale')}
                 />
               </div>
 
-              {/* Notifications */}
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground transition-colors">
+              {/* Enhanced Notifications */}
+              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground transition-all duration-300 hover:scale-110 interactive-glow relative">
                 <Bell className="w-5 h-5" />
+                {/* Notification indicator */}
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse"></span>
               </Button>
 
               {/* Profile Dropdown */}
@@ -129,7 +134,7 @@ const Navigation = () => {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-background/95 backdrop-blur-md border border-border/50 shadow-xl" align="end" forceMount>
+                <DropdownMenuContent className="w-56 glass-gradient backdrop-blur-md border border-border/50 elevated-shadow animate-fade-in-scale" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">
