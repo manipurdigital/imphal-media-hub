@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, User, Menu, X, LogOut, Bell } from 'lucide-react';
+import { Search, User, Menu, X, LogOut, Bell, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -33,6 +34,8 @@ const Navigation: React.FC<NavigationProps> = ({ onSearch }) => {
   } catch (error) {
     console.log('AuthProvider not available');
   }
+
+  const { data: userRole } = useUserRole();
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -126,25 +129,34 @@ const Navigation: React.FC<NavigationProps> = ({ onSearch }) => {
                   <div className="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-purple-600 cursor-pointer transition-colors hover:from-blue-600 hover:to-purple-700">
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  align="end" 
-                  className="w-56 bg-black/95 border border-white/20 text-white backdrop-blur-md"
-                >
-                  <DropdownMenuItem 
-                    onClick={() => navigate('/profile')}
-                    className="hover:bg-white/10 cursor-pointer focus:bg-white/10"
-                  >
-                    <User className="mr-2 h-4 w-4" />
-                    Account
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-white/20" />
-                  <DropdownMenuItem 
-                    onClick={handleSignOut}
-                    className="hover:bg-white/10 cursor-pointer focus:bg-white/10"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign out of KangleiFlix
-                  </DropdownMenuItem>
+                 <DropdownMenuContent 
+                   align="end" 
+                   className="w-56 bg-black/95 border border-white/20 text-white backdrop-blur-md"
+                 >
+                   <DropdownMenuItem 
+                     onClick={() => navigate('/profile')}
+                     className="hover:bg-white/10 cursor-pointer focus:bg-white/10"
+                   >
+                     <User className="mr-2 h-4 w-4" />
+                     Account
+                   </DropdownMenuItem>
+                   {userRole === 'admin' && (
+                     <DropdownMenuItem 
+                       onClick={() => navigate('/admin')}
+                       className="hover:bg-white/10 cursor-pointer focus:bg-white/10"
+                     >
+                       <Settings className="mr-2 h-4 w-4" />
+                       Admin Panel
+                     </DropdownMenuItem>
+                   )}
+                   <DropdownMenuSeparator className="bg-white/20" />
+                   <DropdownMenuItem 
+                     onClick={handleSignOut}
+                     className="hover:bg-white/10 cursor-pointer focus:bg-white/10"
+                   >
+                     <LogOut className="mr-2 h-4 w-4" />
+                     Sign out of KangleiFlix
+                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
@@ -178,21 +190,24 @@ const Navigation: React.FC<NavigationProps> = ({ onSearch }) => {
                 <MobileNavLink to="/tv-shows" text="TV Shows" onClick={() => setIsMobileMenuOpen(false)} />
                 <MobileNavLink to="/my-list" text="My List" onClick={() => setIsMobileMenuOpen(false)} />
                 
-                {user && (
-                  <>
-                    <hr className="border-white/20" />
-                    <MobileNavLink to="/profile" text="Account" onClick={() => setIsMobileMenuOpen(false)} />
-                    <button
-                      onClick={() => {
-                        handleSignOut();
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="text-left text-white hover:text-white/80 transition-colors"
-                    >
-                      Sign out of KangleiFlix
-                    </button>
-                  </>
-                )}
+                 {user && (
+                   <>
+                     <hr className="border-white/20" />
+                     <MobileNavLink to="/profile" text="Account" onClick={() => setIsMobileMenuOpen(false)} />
+                     {userRole === 'admin' && (
+                       <MobileNavLink to="/admin" text="Admin Panel" onClick={() => setIsMobileMenuOpen(false)} />
+                     )}
+                     <button
+                       onClick={() => {
+                         handleSignOut();
+                         setIsMobileMenuOpen(false);
+                       }}
+                       className="text-left text-white hover:text-white/80 transition-colors"
+                     >
+                       Sign out of KangleiFlix
+                     </button>
+                   </>
+                 )}
               </div>
             </SheetContent>
           </Sheet>
