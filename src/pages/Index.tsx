@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import HeroSection from '@/components/HeroSection';
 import ContentCarousel from '@/components/ContentCarousel';
-import SearchBar from '@/components/SearchBar';
+import SearchSection from '@/components/SearchSection';
 import { useVideoSearch, VideoSearchResult } from '@/hooks/useVideoSearch';
 import { useCollections } from '@/hooks/useCollections';
 import { useCategories } from '@/hooks/useCategories';
@@ -171,18 +171,19 @@ const Index = () => {
       {/* Navigation */}
       <Navigation />
 
+      {/* Search Section - Always visible */}
+      <SearchSection onSearch={handleSearch} />
+
       {/* Hero Section */}
       {!showSearch && <HeroSection />}
 
-      {/* Search Section */}
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <SearchBar onSearch={handleSearch} />
-        
-        {showSearch && (
-          <div className="mt-4 flex items-center gap-2">
+      {/* Search Results Info */}
+      {showSearch && (
+        <div className="px-4 sm:px-6 lg:px-8 py-4">
+          <div className="max-w-7xl mx-auto flex items-center gap-2">
             <button 
               onClick={handleBackToHome}
-              className="text-primary hover:text-primary/80 text-sm"
+              className="text-primary hover:text-primary/80 text-sm font-medium"
             >
               ← Back to Home
             </button>
@@ -192,8 +193,8 @@ const Index = () => {
               </span>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Content Sections */}
       <div className="pb-12 space-y-12">

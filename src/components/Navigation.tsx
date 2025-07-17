@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, User, Menu, X, LogOut, Bell, Settings } from 'lucide-react';
+import { User, Menu, LogOut, Bell, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,14 +13,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
-interface NavigationProps {
-  onSearch?: (query: string) => void;
-}
-
-const Navigation: React.FC<NavigationProps> = ({ onSearch }) => {
+const Navigation: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showSearch, setShowSearch] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   let user = null;
@@ -49,11 +42,6 @@ const Navigation: React.FC<NavigationProps> = ({ onSearch }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && searchQuery.trim()) {
-      onSearch?.(searchQuery.trim());
-    }
-  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -80,39 +68,6 @@ const Navigation: React.FC<NavigationProps> = ({ onSearch }) => {
 
         {/* Right Section */}
         <div className="flex items-center space-x-6">
-          {/* Search */}
-          <div className="relative">
-            {showSearch ? (
-              <div className="flex items-center space-x-2">
-                <Input
-                  type="text"
-                  placeholder="Titles, people, genres"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="w-72 bg-black/80 border border-white/20 text-white placeholder-white/60 focus:border-white/40"
-                  autoFocus
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowSearch(false)}
-                  className="text-white hover:bg-white/10"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-            ) : (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowSearch(true)}
-                className="text-white hover:bg-white/10"
-              >
-                <Search className="h-5 w-5" />
-              </Button>
-            )}
-          </div>
 
           {user ? (
             <>
