@@ -4,6 +4,7 @@ import { User, Menu, LogOut, Bell, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
+import { UserAvatar } from '@/components/UserAvatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -83,8 +84,9 @@ const Navigation: React.FC = () => {
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <div className="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-purple-600 cursor-pointer transition-colors hover:from-blue-600 hover:to-purple-700">
-                  </div>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
+                    <UserAvatar user={user} size="sm" />
+                  </Button>
                 </DropdownMenuTrigger>
                  <DropdownMenuContent 
                    align="end" 
