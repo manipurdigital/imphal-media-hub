@@ -123,7 +123,7 @@ const Navigation: React.FC<NavigationProps> = ({ onSearch }) => {
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <div className="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-purple-600 cursor-pointer hover:scale-105 transition-transform">
+                  <div className="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-purple-600 cursor-pointer transition-colors hover:from-blue-600 hover:to-purple-700">
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent 
