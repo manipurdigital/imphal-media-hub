@@ -14,7 +14,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
-const Navigation: React.FC = () => {
+interface NavigationProps {
+  onSearch?: (query: string) => void;
+}
+
+const Navigation: React.FC<NavigationProps> = ({ onSearch }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -47,10 +51,7 @@ const Navigation: React.FC = () => {
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
-      // Navigate to home page and trigger search
-      navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
-      setShowSearch(false);
-      setSearchQuery('');
+      onSearch?.(searchQuery.trim());
     }
   };
 
