@@ -263,18 +263,33 @@
     background: transparent;
     border: none;
     border-radius: 0.25rem;
-    overflow: hidden;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+    overflow: visible;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     position: relative;
     will-change: transform;
     transform-origin: center;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+    margin: 4px;
+  }
+
+  .content-card::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    right: -8px;
+    bottom: -8px;
+    pointer-events: auto;
+    z-index: -1;
   }
 
   .content-card:hover {
-    transform: scale(1.05);
+    transform: scale3d(1.05, 1.05, 1);
     z-index: 20;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    margin: 0px;
   }
 
   .content-card * {
