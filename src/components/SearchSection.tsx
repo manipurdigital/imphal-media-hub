@@ -12,7 +12,7 @@ interface SearchSectionProps {
 
 const SearchSection: React.FC<SearchSectionProps> = ({ 
   onSearch, 
-  placeholder = "Search movies, shows, documentaries..." 
+  placeholder = "Try searching: 'bunny', 'elephant', 'steel', 'sintel'..." 
 }) => {
   const [query, setQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -20,7 +20,8 @@ const SearchSection: React.FC<SearchSectionProps> = ({
 
   // Auto-search when user stops typing
   useEffect(() => {
-    if (debouncedQuery.trim() && debouncedQuery.length >= 2) {
+    if (debouncedQuery.trim() && debouncedQuery.length >= 3) {
+      console.log('Auto-searching for:', debouncedQuery.trim());
       onSearch(debouncedQuery.trim());
     }
   }, [debouncedQuery, onSearch]);
