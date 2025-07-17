@@ -338,7 +338,7 @@
   
   .btn-primary {
     @apply bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold
-           hover:scale-102 active:scale-95 transition-all duration-150 glow-effect
+           hover:scale-[1.02] active:scale-95 transition-all duration-150 glow-effect
            hover:glow-effect-strong focus:glow-effect-strong
            focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2
            focus:ring-offset-background;
@@ -354,7 +354,7 @@
   
   /* Enhanced Interactive Elements */
   .interactive-scale {
-    @apply transition-transform duration-150 hover:scale-102 active:scale-95;
+    @apply transition-transform duration-150 hover:scale-[1.02] active:scale-95;
   }
   
   .interactive-glow {
