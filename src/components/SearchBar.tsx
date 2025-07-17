@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/popover';
 import { useCategories } from '@/hooks/useCategories';
 import { useCollections } from '@/hooks/useCollections';
+import SearchSuggestions from './SearchSuggestions';
 
 interface SearchBarProps {
   onSearch: (query: string, filters?: {
@@ -30,6 +31,7 @@ interface SearchBarProps {
 
 const SearchBar = ({ onSearch, placeholder = "Search movies, shows, actors..." }: SearchBarProps) => {
   const [query, setQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [filters, setFilters] = useState<{
     category?: string;
     collection?: string;
@@ -43,6 +45,21 @@ const SearchBar = ({ onSearch, placeholder = "Search movies, shows, actors..." }
 
   const handleSearch = () => {
     onSearch(query, filters);
+    setShowSuggestions(false);
+  };
+
+  const handleSuggestionSelect = (suggestion: string) => {
+    setQuery(suggestion);
+    onSearch(suggestion, filters);
+  };
+
+  const handleInputChange = (value: string) => {
+    setQuery(value);
+    setShowSuggestions(value.length > 0 || value === '');
+  };
+
+  const handleInputFocus = () => {
+    setShowSuggestions(true);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -73,10 +90,19 @@ const SearchBar = ({ onSearch, placeholder = "Search movies, shows, actors..." }
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 group-focus-within:text-primary transition-colors duration-300" />
         <Input
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => handleInputChange(e.target.value)}
+          onFocus={handleInputFocus}
           onKeyPress={handleKeyPress}
           placeholder={placeholder}
           className="pl-10 pr-20 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all duration-300 hover:border-border/50 group-hover:shadow-lg group-focus-within:shadow-xl"
+        />
+        
+        {/* Search Suggestions */}
+        <SearchSuggestions
+          query={query}
+          onSelect={handleSuggestionSelect}
+          onClose={() => setShowSuggestions(false)}
+          isVisible={showSuggestions}
         />
         <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
           {/* Enhanced Filter Button */}

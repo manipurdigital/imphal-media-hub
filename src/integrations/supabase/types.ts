@@ -191,6 +191,41 @@ export type Database = {
         }
         Relationships: []
       }
+      search_history: {
+        Row: {
+          clicked_video_id: string | null
+          created_at: string
+          id: string
+          results_count: number | null
+          search_query: string
+          user_id: string | null
+        }
+        Insert: {
+          clicked_video_id?: string | null
+          created_at?: string
+          id?: string
+          results_count?: number | null
+          search_query: string
+          user_id?: string | null
+        }
+        Update: {
+          clicked_video_id?: string | null
+          created_at?: string
+          id?: string
+          results_count?: number | null
+          search_query?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "search_history_clicked_video_id_fkey"
+            columns: ["clicked_video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       settings: {
         Row: {
           created_at: string
@@ -365,6 +400,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_preferences: {
+        Row: {
+          content_rating_preference: string | null
+          created_at: string
+          id: string
+          preferred_genres: string[] | null
+          preferred_languages: string[] | null
+          recommendation_settings: Json | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          content_rating_preference?: string | null
+          created_at?: string
+          id?: string
+          preferred_genres?: string[] | null
+          preferred_languages?: string[] | null
+          recommendation_settings?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          content_rating_preference?: string | null
+          created_at?: string
+          id?: string
+          preferred_genres?: string[] | null
+          preferred_languages?: string[] | null
+          recommendation_settings?: Json | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -658,6 +726,50 @@ export type Database = {
           year?: number | null
         }
         Relationships: []
+      }
+      viewing_history: {
+        Row: {
+          created_at: string
+          id: string
+          last_watched_at: string
+          total_duration: number | null
+          updated_at: string
+          user_id: string | null
+          video_id: string | null
+          watch_duration: number | null
+          watch_percentage: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_watched_at?: string
+          total_duration?: number | null
+          updated_at?: string
+          user_id?: string | null
+          video_id?: string | null
+          watch_duration?: number | null
+          watch_percentage?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_watched_at?: string
+          total_duration?: number | null
+          updated_at?: string
+          user_id?: string | null
+          video_id?: string | null
+          watch_duration?: number | null
+          watch_percentage?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "viewing_history_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
