@@ -275,6 +275,10 @@
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
   }
 
+  .content-card * {
+    pointer-events: none;
+  }
+
   .content-card-image {
     width: 100%;
     aspect-ratio: 16/9;

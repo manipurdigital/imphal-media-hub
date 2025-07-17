@@ -52,7 +52,7 @@ const ContentCard: React.FC<ContentCardProps> = ({
   return (
     <>
       <div 
-        className="content-card group relative cursor-pointer"
+        className="content-card group relative"
         onClick={handleClick}
         role="button"
         tabIndex={0}
