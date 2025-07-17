@@ -2,6 +2,30 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { X, Loader2, AlertCircle, RotateCcw, Settings, Check } from 'lucide-react';
+
+// Custom CSS for quality selector button
+const qualityButtonCSS = `
+  .vjs-quality-selector-button {
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #fff;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    margin: 0;
+    padding: 0.5em 0.75em;
+  }
+  
+  .vjs-quality-selector-button:hover {
+    background-color: rgba(255,255,255,0.1);
+  }
+  
+  .vjs-quality-text {
+    margin-left: 0.3em;
+    font-weight: bold;
+  }
+`;
 import { isYouTubeUrl, extractYouTubeVideoId, getYouTubeEmbedUrl } from '@/utils/youtube';
 import { isVimeoUrl, extractVimeoVideoId, getVimeoEmbedUrl } from '@/utils/vimeo';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -71,47 +95,70 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ title, videoUrl, isOpen, onCl
         playerRef.current = null;
       }
 
-      // Configure video.js with YouTube-like settings
-      playerRef.current = videojs(videoRef.current, {
-        controls: true,
-        fluid: true,
-        responsive: true,
-        preload: 'metadata',
-        playbackRates: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
-        language: 'en',
-        html5: {
-          vhs: {
-            enableLowInitialPlaylist: true,
-            smoothQualityChange: true,
-            overrideNative: false
-          }
-        },
-        controlBar: {
-          progressControl: {
-            seekBar: {
-              mouseTimeDisplay: true
-            }
-          },
-          volumePanel: {
-            inline: false,
-            vertical: true
-          },
-          muteToggle: true,
-          volumeControl: true,
-          currentTimeDisplay: true,
-          durationDisplay: true,
-          timeDivider: true,
-          playbackRateMenuButton: {
-            playbackRates: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
-          },
-          fullscreenToggle: true,
-          pictureInPictureToggle: true
-        },
-        sources: [{
-          src: activeVideoUrl,
-          type: activeVideoUrl.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4'
-        }]
-      });
+              // Configure video.js with YouTube-like settings
+              playerRef.current = videojs(videoRef.current, {
+                controls: true,
+                fluid: true,
+                responsive: true,
+                preload: 'metadata',
+                playbackRates: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
+                language: 'en',
+                html5: {
+                  vhs: {
+                    enableLowInitialPlaylist: true,
+                    smoothQualityChange: true,
+                    overrideNative: false
+                  }
+                },
+                controlBar: {
+                  progressControl: {
+                    seekBar: {
+                      mouseTimeDisplay: true
+                    }
+                  },
+                  volumePanel: {
+                    inline: false,
+                    vertical: true
+                  },
+                  muteToggle: true,
+                  volumeControl: true,
+                  currentTimeDisplay: true,
+                  durationDisplay: true,
+                  timeDivider: true,
+                  playbackRateMenuButton: {
+                    playbackRates: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
+                  },
+                  fullscreenToggle: true,
+                  pictureInPictureToggle: true
+                },
+                sources: [{
+                  src: activeVideoUrl,
+                  type: activeVideoUrl.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4'
+                }]
+              });
+
+              // Add CSS for quality selector button
+              if (!document.getElementById('quality-selector-css')) {
+                const style = document.createElement('style');
+                style.id = 'quality-selector-css';
+                style.textContent = qualityButtonCSS;
+                document.head.appendChild(style);
+              }
+
+              // Add custom quality selector button to control bar if multiple resolutions exist
+              if (hasMultipleResolutions) {
+                const qualityButton = playerRef.current.controlBar.addChild('button', {});
+                
+                qualityButton.addClass('vjs-control vjs-button vjs-quality-selector-button');
+                qualityButton.el().innerHTML = `
+                  <span class="vjs-control-text">Quality</span>
+                  <span class="vjs-quality-text">${currentResolution?.quality_label || 'Auto'}</span>
+                `;
+                
+                qualityButton.on('click', () => {
+                  setShowQualitySelector(!showQualitySelector);
+                });
+              }
 
       // Event handlers
       playerRef.current.ready(() => {
@@ -383,41 +430,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ title, videoUrl, isOpen, onCl
                       </p>
                     </video>
                     
-                    {/* Quality Selector Button */}
-                    {hasMultipleResolutions && (
-                      <div className="absolute top-4 right-4 z-50 quality-selector">
-                        <div className="relative">
-                          <button
-                            onClick={() => setShowQualitySelector(!showQualitySelector)}
-                            className="bg-black/70 hover:bg-black/90 text-white px-3 py-2 rounded-lg flex items-center space-x-2 text-sm font-medium transition-colors backdrop-blur-sm"
-                            aria-label="Quality settings"
-                          >
-                            <Settings className="w-4 h-4" />
-                            <span>{currentResolution?.quality_label || 'Auto'}</span>
-                          </button>
-                          
-                          {/* Quality Dropdown */}
-                          {showQualitySelector && (
-                            <div className="absolute top-full right-0 mt-2 bg-black/90 backdrop-blur-md rounded-lg shadow-2xl border border-white/10 min-w-[120px] z-60">
-                              <div className="py-2">
-                                <div className="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider border-b border-white/10">
-                                  Quality
-                                </div>
-                                {resolutions.map((resolution) => (
-                                  <button
-                                    key={resolution.id}
-                                    onClick={() => handleResolutionChange(resolution)}
-                                    className="w-full px-3 py-2 text-left text-white hover:bg-white/10 flex items-center justify-between text-sm transition-colors"
-                                  >
-                                    <span>{resolution.quality_label}</span>
-                                    {currentResolution?.id === resolution.id && (
-                                      <Check className="w-4 h-4 text-red-500" />
-                                    )}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                    {/* Quality Dropdown Overlay */}
+                    {showQualitySelector && hasMultipleResolutions && (
+                      <div className="absolute bottom-16 right-4 bg-black/95 backdrop-blur-md rounded-lg shadow-2xl border border-white/20 min-w-[140px] z-50 quality-selector">
+                        <div className="py-2">
+                          <div className="px-4 py-2 text-xs text-gray-400 uppercase tracking-wider border-b border-white/20">
+                            Quality
+                          </div>
+                          {resolutions.map((resolution) => (
+                            <button
+                              key={resolution.id}
+                              onClick={() => handleResolutionChange(resolution)}
+                              className="w-full px-4 py-3 text-left text-white hover:bg-white/10 flex items-center justify-between text-sm transition-colors"
+                            >
+                              <span>{resolution.quality_label}</span>
+                              {currentResolution?.id === resolution.id && (
+                                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                              )}
+                            </button>
+                          ))}
                         </div>
                       </div>
                     )}
