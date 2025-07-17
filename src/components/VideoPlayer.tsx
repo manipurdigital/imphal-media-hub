@@ -203,114 +203,136 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ title, videoUrl, isOpen, onCl
   return (
     <ErrorBoundary>
       <div 
-        className="fixed inset-0 bg-black z-50 flex items-center justify-center"
+        className="fixed inset-0 bg-black z-50"
         onClick={handleClose}
         role="dialog"
         aria-modal="true"
         aria-labelledby="video-player-title"
       >
-        <div 
-          className="relative w-full h-full"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Close Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-4 right-4 z-[60] text-white hover:bg-white/20"
+        {/* Netflix-style Player Container */}
+        <div className="relative w-full h-full">
+          
+          {/* Close Button - Netflix Style */}
+          <button
             onClick={handleClose}
+            className="absolute top-6 right-6 z-[70] w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm"
+            aria-label="Close player"
           >
-            <X className="w-6 h-6" />
-          </Button>
+            <X className="w-6 h-6 text-white" />
+          </button>
 
-          {/* Title */}
-          <div className="absolute top-4 left-4 z-[60] text-white">
-            <h2 id="video-player-title" className="text-xl font-semibold">
-              {title}
-            </h2>
-          </div>
-
-          {/* Loading Indicator */}
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-40">
-              <Loader2 className="w-12 h-12 text-white animate-spin" />
-            </div>
-          )}
-
-          {/* Error Display */}
-          {error && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-40">
-              <div className="text-center text-white max-w-lg mx-4">
-                <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Playback Error</h3>
-                <p className="text-gray-300 mb-4">{error}</p>
-                
-                {error.includes('CORS') && (
-                  <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 mb-4 text-sm">
-                    <p className="text-yellow-200">
-                      <strong>Technical Info:</strong> This video is hosted on an external server that doesn't allow direct playback. 
-                      The video needs to be configured with proper CORS headers or moved to a compatible hosting service.
-                    </p>
+          {/* Video Container - Netflix Aspect Ratio */}
+          <div className="relative w-full h-full flex items-center justify-center">
+            
+            {/* Main Video Area */}
+            <div 
+              className="relative w-full max-w-[90vw] max-h-[80vh] aspect-video bg-black"
+              onClick={(e) => e.stopPropagation()}
+            >
+              
+              {/* Loading Indicator */}
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black z-40">
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className="w-16 h-16 border-4 border-white/20 border-t-red-600 rounded-full animate-spin"></div>
+                    <p className="text-white text-lg font-medium">Loading...</p>
                   </div>
-                )}
-                
-                <div className="flex space-x-3 justify-center">
-                  <Button
-                    variant="outline"
-                    onClick={retryVideo}
-                    className="text-white border-white/30 hover:bg-white/10"
-                  >
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                    Retry
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    onClick={handleClose}
-                    className="text-white hover:bg-white/10"
-                  >
-                    Close
-                  </Button>
+                </div>
+              )}
+
+              {/* Error Display */}
+              {error && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black z-40">
+                  <div className="text-center text-white max-w-lg mx-4">
+                    <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <AlertCircle className="w-10 h-10 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-4">Something went wrong</h3>
+                    <p className="text-gray-300 mb-6 text-lg leading-relaxed">{error}</p>
+                    
+                    {error.includes('CORS') && (
+                      <div className="bg-yellow-600/20 border border-yellow-600/40 rounded-lg p-4 mb-6 text-sm">
+                        <p className="text-yellow-200">
+                          This video cannot be played due to server restrictions. Please try a different video source.
+                        </p>
+                      </div>
+                    )}
+                    
+                    <div className="flex space-x-4 justify-center">
+                      <button
+                        onClick={retryVideo}
+                        className="px-6 py-3 bg-white text-black font-bold rounded hover:bg-gray-200 transition-colors flex items-center space-x-2"
+                      >
+                        <RotateCcw className="w-5 h-5" />
+                        <span>Try Again</span>
+                      </button>
+                      
+                      <button
+                        onClick={handleClose}
+                        className="px-6 py-3 bg-gray-600 text-white font-bold rounded hover:bg-gray-700 transition-colors"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Video Content */}
+              {videoUrl ? (
+                isYouTube ? (
+                  <iframe
+                    src={youTubeEmbedUrl}
+                    className="w-full h-full rounded-lg"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title={`YouTube video: ${title}`}
+                  />
+                ) : isVimeo ? (
+                  <iframe
+                    src={vimeoEmbedUrl}
+                    className="w-full h-full rounded-lg"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title={`Vimeo video: ${title}`}
+                  />
+                ) : (
+                  <div 
+                    ref={videoRef} 
+                    className="w-full h-full rounded-lg overflow-hidden"
+                  />
+                )
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-900 rounded-lg">
+                  <div className="text-center text-white">
+                    <div className="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <AlertCircle className="w-12 h-12 text-gray-400" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-4">{title}</h2>
+                    <p className="text-xl text-gray-400">No video source available</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Netflix-style Title Overlay */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-8 z-50">
+                <div className="max-w-2xl">
+                  <h1 id="video-player-title" className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">
+                    {title}
+                  </h1>
+                  <div className="flex items-center space-x-4 text-sm text-gray-300">
+                    <span className="bg-white/20 px-2 py-1 rounded text-xs font-medium">HD</span>
+                    <span className="flex items-center space-x-1">
+                      <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+                      <span>Streaming now</span>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          )}
-
-          {/* Video Content */}
-          {videoUrl ? (
-            isYouTube ? (
-              <iframe
-                src={youTubeEmbedUrl}
-                className="w-full h-full"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title={`YouTube video: ${title}`}
-              />
-            ) : isVimeo ? (
-              <iframe
-                src={vimeoEmbedUrl}
-                className="w-full h-full"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title={`Vimeo video: ${title}`}
-              />
-            ) : (
-              <div 
-                ref={videoRef} 
-                className="w-full h-full flex items-center justify-center"
-                style={{ minHeight: '400px' }}
-              />
-            )
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-900">
-              <div className="text-center text-white">
-                <h2 className="text-3xl font-bold mb-4">{title}</h2>
-                <p className="text-xl text-gray-400">No video source available</p>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </ErrorBoundary>
