@@ -334,6 +334,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sessions: {
+        Row: {
+          created_at: string
+          device_id: string
+          device_info: Json
+          expires_at: string
+          id: string
+          ip_address: string | null
+          is_active: boolean
+          last_activity: string
+          session_token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          device_info?: Json
+          expires_at?: string
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean
+          last_activity?: string
+          session_token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          device_info?: Json
+          expires_at?: string
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean
+          last_activity?: string
+          session_token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       video_categories: {
         Row: {
           category_id: string
@@ -572,6 +611,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       fix_video_sources_consistency: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -598,6 +641,10 @@ export type Database = {
           removed_count: number
           removed_titles: string[]
         }[]
+      }
+      terminate_other_sessions: {
+        Args: { _user_id: string; _current_session_token: string }
+        Returns: number
       }
       validate_video_url_accessibility: {
         Args: Record<PropertyKey, never>

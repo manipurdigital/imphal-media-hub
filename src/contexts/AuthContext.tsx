@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useSessionManager } from '@/hooks/useSessionManager';
+import { toast } from 'sonner';
 
 interface Profile {
   id: string;
@@ -21,6 +23,9 @@ interface AuthContextType {
   signIn: (emailOrProvider: string, password?: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
+  currentDeviceSession: any;
+  getUserSessions: () => Promise<any[]>;
+  terminateSession: (sessionToken: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,6 +43,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  const sessionManager = useSessionManager();
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -157,7 +164,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
 
-      return { error };
+      if (error) {
+        return { error };
+      }
+
+      // After successful authentication, handle device session
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      
+      if (authUser) {
+        // Check for session conflicts
+        const conflict = await sessionManager.checkSessionConflict(authUser.id);
+        
+        if (conflict.hasConflict) {
+          // Show user a choice to terminate other sessions or cancel
+          const terminateOthers = window.confirm(
+            `${conflict.message} Do you want to sign out from other devices and continue?`
+          );
+          
+          if (!terminateOthers) {
+            await supabase.auth.signOut();
+            return { error: new Error('Sign-in cancelled due to existing session') };
+          }
+        }
+
+        // Create new session (this will terminate others if needed)
+        try {
+          await sessionManager.createSession(authUser.id, true);
+          toast.success('Signed in successfully');
+        } catch (sessionError) {
+          console.error('Session creation error:', sessionError);
+          // Don't fail the login for session errors, just log them
+          toast.warning('Signed in, but session management may not work properly');
+        }
+      }
+
+      return { error: null };
     } catch (error) {
       return { error };
     }
@@ -165,6 +206,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      // Terminate current session before signing out
+      if (sessionManager.currentSession) {
+        await sessionManager.terminateSession();
+      }
+      
       const { error } = await supabase.auth.signOut();
       return { error };
     } catch (error) {
@@ -200,6 +246,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signOut,
     updateProfile,
+    currentDeviceSession: sessionManager.currentSession,
+    getUserSessions: () => sessionManager.getUserSessions(user?.id || ''),
+    terminateSession: sessionManager.terminateSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
