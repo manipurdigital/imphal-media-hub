@@ -63,7 +63,7 @@ const Index = () => {
   };
 
   const convertVideoToContentItem = (video: VideoSearchResult): ContentItem => {
-    // Map thumbnail URLs to imported images
+    // Map thumbnail URLs to imported images for static assets only
     const imageMap: { [key: string]: string } = {
       '/src/assets/movie-1.jpg': movie1,
       '/src/assets/movie-2.jpg': movie2,
@@ -72,10 +72,23 @@ const Index = () => {
       '/src/assets/movie-5.jpg': movie5,
     };
 
+    // Use the actual thumbnail URL if it exists, otherwise check static assets map
+    const getThumbnailImage = (thumbnailUrl: string | null): string => {
+      if (!thumbnailUrl) return '/placeholder.svg';
+      
+      // If it's a static asset path, use the imported image
+      if (imageMap[thumbnailUrl]) {
+        return imageMap[thumbnailUrl];
+      }
+      
+      // Otherwise use the URL directly (for external URLs like Supabase Storage or Unsplash)
+      return thumbnailUrl;
+    };
+
     return {
       id: video.id,
       title: video.title,
-      image: imageMap[video.thumbnail_url] || '/placeholder.svg',
+      image: getThumbnailImage(video.thumbnail_url),
       rating: video.rating || 7.5,
       year: video.production_year || video.year || 2024,
       genre: video.genre,
