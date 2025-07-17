@@ -1,187 +1,241 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Search, Bell, User, LogOut, Settings, Shield } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Search, User, Menu, X, LogOut, Bell } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUserRole } from '@/hooks/useUserRole';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
-const Navigation = () => {
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+interface NavigationProps {
+  onSearch?: (query: string) => void;
+}
+
+const Navigation: React.FC<NavigationProps> = ({ onSearch }) => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  // Add error boundary for auth context
   let user = null;
-  let profile = null;
   let signOut = async () => ({ error: null });
   
   try {
     const auth = useAuth();
     user = auth.user;
-    profile = auth.profile;
     signOut = auth.signOut;
   } catch (error) {
-    console.log('AuthProvider not available, showing unauthenticated state');
+    console.log('AuthProvider not available');
   }
   
-  const { data: userRole } = useUserRole();
-  const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to sign out. Please try again.',
-        variant: 'destructive',
-      });
-    } else {
-      toast({
-        title: 'Signed out',
-        description: 'You have been successfully signed out.',
-      });
-      navigate('/auth');
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      onSearch?.(searchQuery.trim());
     }
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
   };
 
   return (
-    <nav className="fixed top-0 w-full z-50 netflix-nav px-4 sm:px-6 lg:px-8">
-      <div className="flex items-center justify-between h-16 animate-fade-in-scale">
+    <nav className={`fixed top-0 left-0 right-0 z-50 netflix-nav ${isScrolled ? 'scrolled' : ''} px-16 py-4`}>
+      <div className="flex items-center justify-between w-full">
         {/* Logo */}
-        <div className="flex items-center space-x-8">
-          <Link to="/" className="netflix-logo text-primary font-bold text-2xl tracking-tight hover:scale-105 transition-transform duration-300">
-            KangleiFlix
-          </Link>
-          
-          {/* Navigation Links - Only show if authenticated */}
-          {user && (
-            <div className="hidden md:flex space-x-8">
-              <Link to="/" className="text-foreground hover:text-gray-300 transition-colors duration-300 text-sm font-medium">
-                Home
-              </Link>
-              <Link to="/tv-shows" className="text-muted-foreground hover:text-gray-300 transition-colors duration-300 text-sm font-medium">
-                TV Shows
-              </Link>
-              <Link to="/movies" className="text-muted-foreground hover:text-gray-300 transition-colors duration-300 text-sm font-medium">
-                Movies
-              </Link>
-              <Link to="/" className="text-muted-foreground hover:text-gray-300 transition-colors duration-300 text-sm font-medium">
-                New & Popular
-              </Link>
-              <Link to="/my-list" className="text-muted-foreground hover:text-gray-300 transition-colors duration-300 text-sm font-medium">
-                My List
-              </Link>
-            </div>
-          )}
+        <Link to="/" className="text-red-600 text-2xl font-bold tracking-tight hover:text-red-500 transition-colors">
+          KANGLEIFLIX
+        </Link>
+
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center space-x-8 ml-12">
+          <NavLink to="/" text="Home" />
+          <NavLink to="/movies" text="Movies" />
+          <NavLink to="/tv-shows" text="TV Shows" />
+          <NavLink to="/my-list" text="My List" />
         </div>
 
-        {/* Right Side */}
-        <div className="flex items-center space-x-4">
+        {/* Right Section */}
+        <div className="flex items-center space-x-6">
+          {/* Search */}
+          <div className="relative">
+            {showSearch ? (
+              <div className="flex items-center space-x-2">
+                <Input
+                  type="text"
+                  placeholder="Titles, people, genres"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="w-72 bg-black/80 border border-white/20 text-white placeholder-white/60 focus:border-white/40"
+                  autoFocus
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowSearch(false)}
+                  className="text-white hover:bg-white/10"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowSearch(true)}
+                className="text-white hover:bg-white/10"
+              >
+                <Search className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
+
           {user ? (
             <>
-              {/* Enhanced Search - Only show if authenticated */}
-              <div className="relative hidden sm:block group">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 group-focus-within:text-primary transition-colors duration-300" />
-                <input
-                  type="text"
-                  placeholder="Search movies, shows, actors..."
-                  className="pl-10 pr-4 py-2 bg-background/20 backdrop-blur-md border border-border/30 rounded-lg 
-                           transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/50 
-                           focus:border-primary/50 placeholder:text-muted-foreground text-sm w-64
-                           hover:bg-background/30 hover:border-border/50 focus:w-80 focus:bg-background/40
-                           group-hover:shadow-lg group-focus-within:shadow-xl"
-                  onFocus={(e) => e.target.parentElement?.classList.add('animate-fade-in-scale')}
-                  onBlur={(e) => e.target.parentElement?.classList.remove('animate-fade-in-scale')}
-                />
-              </div>
-
-              {/* Enhanced Notifications */}
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground transition-all duration-300 hover:scale-110 interactive-glow relative">
-                <Bell className="w-5 h-5" />
-                {/* Notification indicator */}
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+              {/* Notifications */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-white/10 hidden md:flex"
+              >
+                <Bell className="h-5 w-5" />
               </Button>
 
-              {/* Profile Dropdown */}
+              {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-sm">
-                    <Avatar className="h-8 w-8 rounded-sm">
-                      <AvatarImage src={profile?.avatar_url || ''} alt={profile?.full_name || ''} />
-                      <AvatarFallback className="bg-primary text-primary-foreground rounded-sm">
-                        {profile?.full_name ? getInitials(profile.full_name) : (
-                          user.email ? getInitials(user.email) : 'U'
-                        )}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
+                  <div className="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-purple-600 cursor-pointer hover:scale-105 transition-transform">
+                  </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 glass-gradient backdrop-blur-md border border-border/50 elevated-shadow animate-fade-in-scale" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {profile?.full_name || 'User'}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user.email}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Link to="/profile" className="flex items-center w-full">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Account Settings</span>
-                    </Link>
+                <DropdownMenuContent 
+                  align="end" 
+                  className="w-56 bg-black/95 border border-white/20 text-white backdrop-blur-md"
+                >
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/profile')}
+                    className="hover:bg-white/10 cursor-pointer focus:bg-white/10"
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    Account
                   </DropdownMenuItem>
-                  {userRole === 'admin' && (
-                    <DropdownMenuItem>
-                      <Link to="/admin" className="flex items-center w-full">
-                        <Shield className="mr-2 h-4 w-4" />
-                        <span>Admin Panel</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem>
-                    <span>Help Center</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut}>
+                  <DropdownMenuSeparator className="bg-white/20" />
+                  <DropdownMenuItem 
+                    onClick={handleSignOut}
+                    className="hover:bg-white/10 cursor-pointer focus:bg-white/10"
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sign Out</span>
+                    Sign out of KangleiFlix
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
           ) : (
-            /* Show sign in button for unauthenticated users */
-            <Link to="/auth">
-              <Button variant="outline" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                Sign In
-              </Button>
-            </Link>
+            <Button
+              onClick={() => navigate('/auth')}
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2"
+            >
+              Sign In
+            </Button>
           )}
+
+          {/* Mobile Menu */}
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden text-white hover:bg-white/10"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent 
+              side="right" 
+              className="w-80 bg-black/95 border-white/20 text-white backdrop-blur-md"
+            >
+              <div className="flex flex-col space-y-6 mt-8">
+                <MobileNavLink to="/" text="Home" onClick={() => setIsMobileMenuOpen(false)} />
+                <MobileNavLink to="/movies" text="Movies" onClick={() => setIsMobileMenuOpen(false)} />
+                <MobileNavLink to="/tv-shows" text="TV Shows" onClick={() => setIsMobileMenuOpen(false)} />
+                <MobileNavLink to="/my-list" text="My List" onClick={() => setIsMobileMenuOpen(false)} />
+                
+                {user && (
+                  <>
+                    <hr className="border-white/20" />
+                    <MobileNavLink to="/profile" text="Account" onClick={() => setIsMobileMenuOpen(false)} />
+                    <button
+                      onClick={() => {
+                        handleSignOut();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="text-left text-white hover:text-white/80 transition-colors"
+                    >
+                      Sign out of KangleiFlix
+                    </button>
+                  </>
+                )}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </nav>
+  );
+};
+
+const NavLink: React.FC<{ to: string; text: string }> = ({ to, text }) => {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+  
+  return (
+    <Link
+      to={to}
+      className={`text-sm font-medium transition-colors duration-200 hover:text-white ${
+        isActive ? 'text-white font-semibold' : 'text-white/80'
+      }`}
+    >
+      {text}
+    </Link>
+  );
+};
+
+const MobileNavLink: React.FC<{ to: string; text: string; onClick: () => void }> = ({ 
+  to, 
+  text, 
+  onClick 
+}) => {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+  
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className={`text-lg font-medium transition-colors duration-200 ${
+        isActive ? 'text-white' : 'text-white/80 hover:text-white'
+      }`}
+    >
+      {text}
+    </Link>
   );
 };
 

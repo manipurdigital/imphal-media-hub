@@ -44,7 +44,7 @@ const ContentCarousel = ({ title, items, loading = false }: ContentCarouselProps
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
-      const scrollAmount = 400;
+      const scrollAmount = 800;
       scrollRef.current.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth'
@@ -53,57 +53,55 @@ const ContentCarousel = ({ title, items, loading = false }: ContentCarouselProps
   };
 
   return (
-    <section className="mb-8">
-      {/* Section Header */}
-      <div className="flex items-center justify-between mb-4 px-4 sm:px-6 lg:px-8">
-        <h2 className="text-xl md:text-2xl font-bold text-white">{title}</h2>
-        
-        {/* Enhanced Navigation Arrows */}
-        <div className="hidden md:flex items-center space-x-2">
-          <button
-            onClick={() => scroll('left')}
-            disabled={!canScrollLeft}
-            className={`glass-morphism hover:bg-white/20 rounded-full p-2 transition-all duration-300 text-white ${
-              !canScrollLeft ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'
-            }`}
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => scroll('right')}
-            disabled={!canScrollRight}
-            className={`glass-morphism hover:bg-white/20 rounded-full p-2 transition-all duration-300 text-white ${
-              !canScrollRight ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'
-            }`}
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
+    <section className="mb-16 relative">
+      <div className="mb-4 px-16">
+        <h2 className="text-2xl font-bold text-white hover:text-white/80 transition-colors cursor-pointer">
+          {title}
+        </h2>
       </div>
-
-      {/* Enhanced Netflix-Style Carousel */}
-      <div className="netflix-carousel px-4 sm:px-6 lg:px-8">
-        <div
-          ref={scrollRef}
-          className="carousel-scroll"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
+      
+      <div className="netflix-carousel" ref={scrollRef}>
+        <div className="netflix-carousel-container">
           {loading ? (
             // Loading skeletons
             Array.from({ length: 6 }).map((_, index) => (
-              <div key={`skeleton-${index}`} className="netflix-carousel-item">
+              <div key={index} className="netflix-carousel-item">
                 <ContentCardSkeleton />
               </div>
             ))
           ) : (
             // Actual content
-            items.map((item, index) => (
+            items.map((item) => (
               <div key={item.id} className="netflix-carousel-item">
                 <ContentCard {...item} />
               </div>
             ))
           )}
         </div>
+        
+        {/* Navigation arrows */}
+        {!loading && (
+          <>
+            <button
+              onClick={() => scroll('left')}
+              className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-24 bg-black/50 hover:bg-black/80 transition-all flex items-center justify-center ${
+                !canScrollLeft ? 'opacity-0 pointer-events-none' : 'opacity-100'
+              }`}
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-6 h-6 text-white" />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-24 bg-black/50 hover:bg-black/80 transition-all flex items-center justify-center ${
+                !canScrollRight ? 'opacity-0 pointer-events-none' : 'opacity-100'
+              }`}
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-6 h-6 text-white" />
+            </button>
+          </>
+        )}
       </div>
     </section>
   );

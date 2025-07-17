@@ -1,8 +1,6 @@
-import { useState, useRef, useCallback, useEffect, memo } from 'react';
-import { Play, Plus, ThumbsUp, ChevronDown, Check, ImageIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import VideoPlayer from '@/components/VideoPlayer';
-import { useFavoritesContext } from '@/contexts/FavoritesContext';
+import React, { useState } from 'react';
+import { Play, Plus, ThumbsUp, ChevronDown } from 'lucide-react';
+import VideoPlayer from './VideoPlayer';
 
 interface ContentCardProps {
   id: string;
@@ -25,300 +23,132 @@ interface ContentCardProps {
   trailerUrl?: string;
 }
 
-const ContentCard = memo(({ 
+const ContentCard: React.FC<ContentCardProps> = ({
   id,
-  title, 
-  image, 
-  rating, 
-  year, 
-  genre, 
-  duration, 
-  description, 
-  videoUrl, 
-  castMembers = [], 
-  director, 
-  contentType, 
-  categories = [], 
-  trailerUrl 
-}: ContentCardProps) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [isVideoPlayerOpen, setIsVideoPlayerOpen] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  title,
+  image,
+  rating,
+  year,
+  genre,
+  duration,
+  description,
+  videoUrl,
+  castMembers = [],
+  director,
+  contentType,
+  categories = [],
+  trailerUrl
+}) => {
+  const [isLoading, setIsLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const { isFavorite, toggleFavorite, loading: favoritesLoading } = useFavoritesContext();
+  const [showPlayer, setShowPlayer] = useState(false);
 
-  const handleMouseEnter = useCallback(() => {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-      hoverTimeoutRef.current = null;
+  const handleClick = () => {
+    if (videoUrl) {
+      setShowPlayer(true);
     }
-    // Add small delay to prevent accidental triggers
-    setTimeout(() => setIsHovered(true), 100);
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    hoverTimeoutRef.current = setTimeout(() => {
-      setIsHovered(false);
-    }, 200);
-  }, []);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-      }
-    };
-  }, []);
+  };
 
   return (
-    <div 
-      ref={cardRef}
-      className="relative min-w-[200px] md:min-w-[250px] transform-gpu will-change-transform"
-      style={{ isolation: 'isolate' }}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {/* Enhanced Thumbnail Container */}
-      <div className="relative aspect-[3/4] overflow-hidden rounded-xl transform-gpu will-change-transform border border-border/30 bg-muted/20">
-        {/* Enhanced Image Loading State */}
-        {!imageLoaded && !imageError && (
-          <div className="absolute inset-0 bg-muted/30 shimmer-effect flex items-center justify-center animate-pulse">
-            <ImageIcon className="w-12 h-12 text-muted-foreground/50 animate-float" />
-            <div className="absolute inset-0 skeleton"></div>
+    <>
+      <div 
+        className="content-card group relative cursor-pointer"
+        onClick={handleClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick();
+          }
+        }}
+        aria-label={`Play ${title}`}
+      >
+        {/* Loading State */}
+        {isLoading && (
+          <div className="absolute inset-0 bg-gray-800 animate-pulse z-10 flex items-center justify-center rounded">
+            <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
           </div>
         )}
         
-        {/* Enhanced Error State */}
-        {imageError && (
-          <div className="absolute inset-0 bg-muted/30 flex flex-col items-center justify-center animate-fade-in-scale">
-            <ImageIcon className="w-12 h-12 text-muted-foreground/50 mb-2" />
-            <span className="text-xs text-muted-foreground">Image unavailable</span>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="mt-2 text-xs hover:bg-background/20"
-              onClick={() => {
-                setImageError(false);
-                setImageLoaded(false);
-              }}
-            >
-              Retry
-            </Button>
-          </div>
-        )}
-        
-        {/* Enhanced Main Image with Lazy Loading */}
-        <img 
-          src={image} 
-          alt={title}
-          loading="lazy"
-          decoding="async"
-          className={`w-full h-full object-cover transition-all duration-300 ease-out ${
-            imageLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          style={{
-            transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-            transformOrigin: 'center center'
-          }}
-          onLoad={() => {
-            setImageLoaded(true);
-            setImageError(false);
-          }}
-          onError={() => {
-            setImageError(true);
-            setImageLoaded(false);
-          }}
-        />
-        
-        {/* Always visible title overlay */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent p-4 pt-8">
-          <h3 className="text-white font-semibold text-sm md:text-base line-clamp-2 text-shadow">
-            {title}
-          </h3>
-          <div className="flex items-center space-x-2 text-xs text-gray-300 mt-1">
-            <span>{year}</span>
-            <span>•</span>
-            <span className="flex items-center">
-              <span className="text-yellow-400 mr-1">★</span>
-              {rating}
-            </span>
-          </div>
-        </div>
-        
-        {/* Enhanced Hover overlay for play button */}
-        {isHovered && imageLoaded && !imageError && (
-          <div 
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center animate-fade-in-scale"
-            style={{
-              pointerEvents: 'auto'
+        {/* Image */}
+        <div className="relative aspect-video overflow-hidden rounded">
+          <img
+            src={image}
+            alt={title}
+            className="content-card-image w-full h-full object-cover"
+            loading="lazy"
+            onLoad={() => setIsLoading(false)}
+            onError={() => {
+              setIsLoading(false);
+              setImageError(true);
             }}
-          >
-            <button 
-              className="glass-morphism rounded-full p-4 interactive-scale hover:glow-effect hover:scale-110 transition-all duration-200 focus-ring animate-pulse-glow"
-              onClick={() => {
-                if (!videoUrl) {
-                  console.warn('No video URL available for:', title);
-                  return;
-                }
-                setIsVideoPlayerOpen(true);
-              }}
-              aria-label={`Play ${title}`}
-            >
-              <Play className="w-6 h-6 text-white" />
-            </button>
+          />
+          
+          {/* Fallback for broken images */}
+          {imageError && (
+            <div className="absolute inset-0 bg-gray-800 flex items-center justify-center rounded">
+              <div className="text-center text-gray-400">
+                <div className="w-12 h-12 mx-auto mb-2 opacity-50">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                  </svg>
+                </div>
+                <p className="text-xs">Image unavailable</p>
+              </div>
+            </div>
+          )}
+          
+          {/* Hover Overlay with Netflix-style controls */}
+          <div className="content-card-overlay">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
+                  <svg className="w-5 h-5 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z"/>
+                  </svg>
+                </button>
+                <button className="w-10 h-10 border-2 border-white rounded-full flex items-center justify-center hover:bg-white/20 transition-colors">
+                  <Plus className="w-5 h-5 text-white" />
+                </button>
+                <button className="w-10 h-10 border-2 border-white rounded-full flex items-center justify-center hover:bg-white/20 transition-colors">
+                  <ThumbsUp className="w-5 h-5 text-white" />
+                </button>
+              </div>
+              <button className="w-10 h-10 border-2 border-white rounded-full flex items-center justify-center hover:bg-white/20 transition-colors">
+                <ChevronDown className="w-5 h-5 text-white" />
+              </button>
+            </div>
+            <div className="mt-3">
+              <div className="flex items-center space-x-2 text-sm text-gray-300 mb-2">
+                <span className="text-green-400 font-semibold">98% Match</span>
+                <span className="border border-white/40 px-1 py-0.5 text-xs">TV-MA</span>
+                <span>{year}</span>
+              </div>
+              <div className="flex items-center space-x-2 text-xs text-gray-400">
+                <span>{duration}</span>
+                <span>•</span>
+                <span>{genre}</span>
+                <span>•</span>
+                <span className="flex items-center">
+                  <span className="text-yellow-400 mr-1">★</span>
+                  {rating}
+                </span>
+              </div>
+            </div>
           </div>
-        )}
-
-        {/* Rating Badge - moved to top right */}
-        <div className="absolute top-2 right-2 glass-morphism px-3 py-1 rounded-full text-yellow-400 text-sm font-semibold flex items-center">
-          <span className="mr-1">★</span>
-          {rating}
         </div>
       </div>
-
-      {/* Enhanced Content Info - Shows on hover with stable positioning */}
-      {isHovered && imageLoaded && !imageError && (
-        <div 
-          className="absolute top-full left-0 right-0 glass-gradient border border-border/50 rounded-b-xl p-4 z-30 elevated-shadow backdrop-blur-md animate-slide-down"
-          style={{
-            transformOrigin: 'top center',
-            pointerEvents: 'auto'
-          }}
-        >
-          <h3 className="font-semibold text-foreground mb-2 line-clamp-1">{title}</h3>
-          
-          <div className="flex items-center space-x-2 text-xs text-muted-foreground mb-2">
-            <span>{year}</span>
-            <span>•</span>
-            <span>{genre}</span>
-            <span>•</span>
-            <span>{duration}</span>
-            {contentType && (
-              <>
-                <span>•</span>
-                <span className="capitalize">{contentType}</span>
-              </>
-            )}
-          </div>
-
-          {/* Categories */}
-          {categories.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2">
-              {categories.slice(0, 3).map((category) => (
-                <span 
-                  key={category.id} 
-                  className="text-xs bg-secondary/50 text-secondary-foreground px-2 py-1 rounded-full"
-                >
-                  {category.name}
-                </span>
-              ))}
-              {categories.length > 3 && (
-                <span className="text-xs text-muted-foreground">+{categories.length - 3} more</span>
-              )}
-            </div>
-          )}
-
-          {/* Cast and Director */}
-          <div className="space-y-1 mb-3">
-            {director && (
-              <p className="text-xs text-muted-foreground">
-                <span className="font-medium">Director:</span> {director}
-              </p>
-            )}
-            {castMembers.length > 0 && (
-              <p className="text-xs text-muted-foreground">
-                <span className="font-medium">Cast:</span> {castMembers.slice(0, 3).map((member, index) => (
-                  <span key={`${id}-cast-${index}`}>
-                    {index > 0 && ', '}
-                    {member}
-                  </span>
-                ))}
-                {castMembers.length > 3 && <span className="opacity-70"> +{castMembers.length - 3} more</span>}
-              </p>
-            )}
-          </div>
-
-          {description && (
-            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-              {description}
-            </p>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <button 
-                className="bg-primary rounded-full p-2 transition-all duration-200 interactive-scale glow-effect hover:glow-effect-strong"
-                onClick={() => {
-                  if (!videoUrl) {
-                    console.warn('No video URL available for:', title);
-                    return;
-                  }
-                  setIsVideoPlayerOpen(true);
-                }}
-                title="Play video"
-              >
-                <Play className="w-4 h-4 text-primary-foreground" />
-              </button>
-              {trailerUrl && (
-                <button 
-                  className="glass-morphism rounded-full p-2 transition-all duration-200 interactive-scale hover:glow-effect"
-                  onClick={() => {
-                    console.log(`Playing trailer for ${title}`);
-                    // TODO: Implement trailer functionality
-                  }}
-                  title="Watch trailer"
-                >
-                  <Play className="w-3 h-3 text-secondary-foreground" />
-                </button>
-              )}
-              <button 
-                className="glass-morphism rounded-full p-2 transition-all duration-200 interactive-scale hover:glow-effect"
-                onClick={() => toggleFavorite(id)}
-                disabled={favoritesLoading}
-                title={isFavorite(id) ? "Remove from My List" : "Add to My List"}
-              >
-                {isFavorite(id) ? (
-                  <Check className="w-4 h-4 text-green-400" />
-                ) : (
-                  <Plus className="w-4 h-4 text-secondary-foreground" />
-                )}
-              </button>
-              <button 
-                className="glass-morphism rounded-full p-2 transition-all duration-200 interactive-scale hover:glow-effect"
-                onClick={() => {
-                  console.log(`Liked ${title}`);
-                  // TODO: Implement like functionality
-                }}
-                title="Like this content"
-              >
-                <ThumbsUp className="w-4 h-4 text-secondary-foreground" />
-              </button>
-            </div>
-            
-            <button 
-              className="glass-morphism rounded-full p-2 transition-all duration-200 interactive-scale hover:glow-effect"
-              title="More options"
-            >
-              <ChevronDown className="w-4 h-4 text-secondary-foreground" />
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Video Player */}
       <VideoPlayer
         title={title}
         videoUrl={videoUrl}
-        videoId={id}
-        isOpen={isVideoPlayerOpen}
-        onClose={() => setIsVideoPlayerOpen(false)}
+        isOpen={showPlayer}
+        onClose={() => setShowPlayer(false)}
       />
-    </div>
+    </>
   );
-});
+};
 
 export default ContentCard;
