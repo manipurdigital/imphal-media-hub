@@ -146,6 +146,7 @@ const ContentCard: React.FC<ContentCardProps> = ({
         videoUrl={videoUrl}
         isOpen={showPlayer}
         onClose={() => setShowPlayer(false)}
+        videoId={id}
       />
     </>
   );

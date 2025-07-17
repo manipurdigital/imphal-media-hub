@@ -1,30 +1,12 @@
-import React, { useState, useRef, useCallback, useEffect, memo } from 'react';
-import { 
-  Play, 
-  Pause, 
-  Volume2, 
-  VolumeX, 
-  Maximize, 
-  X, 
-  Settings,
-  SkipBack,
-  SkipForward,
-  Loader2,
-  Maximize2,
-  Volume1,
-  AlertCircle,
-  RotateCcw
-} from 'lucide-react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import videojs from 'video.js';
+import 'video.js/dist/video-js.css';
+import '@videojs/themes/dist/city/index.css';
+import { X, Loader2, AlertCircle, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { isYouTubeUrl, extractYouTubeVideoId, getYouTubeEmbedUrl } from '@/utils/youtube';
 import { isVimeoUrl, extractVimeoVideoId, getVimeoEmbedUrl } from '@/utils/vimeo';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { useVideoResolutions } from '@/hooks/useVideoResolutions';
-import { useVideoPlayback } from '@/hooks/useVideoPlayback';
-import { ResolutionSelector } from '@/components/ResolutionSelector';
-import { analyzeVideoUrl } from '@/utils/videoUrl';
 
 interface VideoPlayerProps {
   title: string;
@@ -34,347 +16,225 @@ interface VideoPlayerProps {
   videoId?: string;
 }
 
-const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPlayerProps) => {
-  const [showVideoControls, setShowVideoControls] = useState(true);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [showSettings, setShowSettings] = useState(false);
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ title, videoUrl, isOpen, onClose, videoId }) => {
+  const videoRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-  const [isResolutionSwitching, setIsResolutionSwitching] = useState(false);
-  
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout>();
-  
-  // Resolution management - only use if videoId is a valid UUID
-  const isValidVideoId = videoId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(videoId);
-  const {
-    resolutions,
-    currentResolution,
-    isLoading: resolutionsLoading,
-    error: resolutionsError,
-    switchResolution,
-    hasMultipleResolutions,
-  } = useVideoResolutions(isValidVideoId ? videoId : null);
-  
-  // Get effective video URL
-  const getEffectiveVideoUrl = () => {
-    // If we have a current resolution, use processed URL
-    if (currentResolution?.processed_url) {
-      return currentResolution.processed_url;
-    }
-    
-    // If we have a current resolution but no processed URL, use source URL
-    if (currentResolution?.source_url) {
-      return currentResolution.source_url;
-    }
-    
-    // Fallback to original videoUrl if no resolution available
-    return videoUrl || null;
-  };
-  
-  const effectiveVideoUrl = getEffectiveVideoUrl();
-  
-  // Determine if this is a YouTube or Vimeo video
-  const isYouTube = effectiveVideoUrl ? isYouTubeUrl(effectiveVideoUrl) : false;
-  const youTubeVideoId = isYouTube ? extractYouTubeVideoId(effectiveVideoUrl!) : null;
+
+  // Check for YouTube/Vimeo URLs
+  const isYouTube = videoUrl ? isYouTubeUrl(videoUrl) : false;
+  const youTubeVideoId = isYouTube ? extractYouTubeVideoId(videoUrl!) : null;
   const youTubeEmbedUrl = youTubeVideoId ? getYouTubeEmbedUrl(youTubeVideoId) : null;
-  
-  const isVimeo = effectiveVideoUrl ? isVimeoUrl(effectiveVideoUrl) : false;
-  const vimeoVideoId = isVimeo ? extractVimeoVideoId(effectiveVideoUrl!) : null;
+
+  const isVimeo = videoUrl ? isVimeoUrl(videoUrl) : false;
+  const vimeoVideoId = isVimeo ? extractVimeoVideoId(videoUrl!) : null;
   const vimeoEmbedUrl = vimeoVideoId ? getVimeoEmbedUrl(vimeoVideoId) : null;
-  
-  // Video playback management - only for HTML5 videos, not YouTube/Vimeo
-  const {
-    state: playbackState,
-    controls: playbackControls,
-    currentUrl,
-    hasMoreFallbacks
-  } = useVideoPlayback(videoRef, !isYouTube && !isVimeo ? effectiveVideoUrl : null, videoId);
 
-  // Auto-hide controls
-  const resetControlsTimeout = useCallback(() => {
-    if (controlsTimeoutRef.current) {
-      clearTimeout(controlsTimeoutRef.current);
+  const handleClose = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (playerRef.current) {
+      playerRef.current.dispose();
+      playerRef.current = null;
     }
-    setShowVideoControls(true);
-    controlsTimeoutRef.current = setTimeout(() => {
-      if (playbackState.isPlaying) {
-        setShowVideoControls(false);
-      }
-    }, 3000);
-  }, [playbackState.isPlaying]);
-
-  // Handle mouse movement
-  const handleMouseMove = useCallback(() => {
-    resetControlsTimeout();
-  }, [resetControlsTimeout]);
-
-  const handleClose = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsMounted(false);
     onClose();
   }, [onClose]);
 
-  // Format time display
-  const formatTime = (time: number) => {
-    const hours = Math.floor(time / 3600);
-    const minutes = Math.floor((time % 3600) / 60);
-    const seconds = Math.floor(time % 60);
-    
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
+  const initializePlayer = useCallback(() => {
+    if (!videoRef.current || !videoUrl || isYouTube || isVimeo) return;
 
-  // Fullscreen functionality
-  const toggleFullscreen = useCallback(() => {
-    const video = videoRef.current;
-    const container = containerRef.current;
-    
-    // Check if already in fullscreen
-    const isCurrentlyFullscreen = !!(
-      document.fullscreenElement ||
-      (document as any).webkitFullscreenElement ||
-      (document as any).mozFullScreenElement ||
-      (document as any).msFullscreenElement
-    );
-    
-    if (isCurrentlyFullscreen) {
-      // Exit fullscreen
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if ((document as any).webkitExitFullscreen) {
-        (document as any).webkitExitFullscreen();
-      } else if ((document as any).mozCancelFullScreen) {
-        (document as any).mozCancelFullScreen();
-      } else if ((document as any).msExitFullscreen) {
-        (document as any).msExitFullscreen();
-      }
-    } else {
-      // Enter fullscreen - prefer video element for local videos
-      const targetElement = (!isYouTube && !isVimeo && video) ? video : container;
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Create video element
+      const videoElement = document.createElement('video');
+      videoElement.className = 'video-js vjs-theme-city vjs-big-play-centered';
+      videoElement.style.width = '100%';
+      videoElement.style.height = '100%';
       
-      if (targetElement) {
-        if (targetElement.requestFullscreen) {
-          targetElement.requestFullscreen();
-        } else if ((targetElement as any).webkitRequestFullscreen) {
-          (targetElement as any).webkitRequestFullscreen();
-        } else if ((targetElement as any).mozRequestFullScreen) {
-          (targetElement as any).mozRequestFullScreen();
-        } else if ((targetElement as any).msRequestFullscreen) {
-          (targetElement as any).msRequestFullscreen();
+      // Clear and append video element
+      videoRef.current.innerHTML = '';
+      videoRef.current.appendChild(videoElement);
+
+      // Initialize Video.js player
+      playerRef.current = videojs(videoElement, {
+        controls: true,
+        responsive: true,
+        fluid: false,
+        fill: true,
+        playbackRates: [0.5, 1, 1.25, 1.5, 2],
+        preload: 'metadata',
+        sources: [{
+          src: videoUrl,
+          type: 'video/mp4'
+        }],
+        html5: {
+          vhs: {
+            enableLowInitialPlaylist: true,
+            smoothQualityChange: true,
+            overrideNative: true
+          }
         }
-      }
-    }
-  }, [isYouTube, isVimeo]);
+      });
 
-  // Keyboard shortcuts
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (!isOpen || !videoRef.current) return;
+      // Event handlers
+      playerRef.current.ready(() => {
+        setIsLoading(false);
+        console.log('Video.js player ready');
+      });
 
-    const video = videoRef.current;
-    
-    switch (e.key) {
-      case ' ':
-        e.preventDefault();
-        playbackControls.togglePlay();
-        break;
-      case 'ArrowLeft':
-        e.preventDefault();
-        playbackControls.seek(Math.max(0, playbackState.currentTime - 10));
-        break;
-      case 'ArrowRight':
-        e.preventDefault();
-        playbackControls.seek(Math.min(playbackState.duration, playbackState.currentTime + 10));
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        playbackControls.setVolume(Math.min(1, playbackState.volume + 0.1));
-        break;
-      case 'ArrowDown':
-        e.preventDefault();
-        playbackControls.setVolume(Math.max(0, playbackState.volume - 0.1));
-        break;
-      case 'm':
-        e.preventDefault();
-        playbackControls.toggleMute();
-        break;
-      case 'f':
-        e.preventDefault();
-        toggleFullscreen();
-        break;
-      case 'Escape':
-        if (isFullscreen) {
-          toggleFullscreen();
-        } else {
-          onClose();
+      playerRef.current.on('error', () => {
+        const error = playerRef.current.error();
+        let errorMessage = 'Failed to load video.';
+        
+        if (error) {
+          switch (error.code) {
+            case 1:
+              errorMessage = 'Video playback was aborted.';
+              break;
+            case 2:
+              errorMessage = 'Network error occurred while loading video.';
+              break;
+            case 3:
+              errorMessage = 'Video format is not supported.';
+              break;
+            case 4:
+              errorMessage = 'Video source is not accessible or CORS blocked.';
+              break;
+            default:
+              errorMessage = error.message || 'Unknown video error.';
+          }
         }
-        break;
-    }
-  }, [isOpen, playbackState, playbackControls, isFullscreen, onClose, toggleFullscreen]);
 
-  // Fullscreen event listeners
+        setError(errorMessage);
+        setIsLoading(false);
+        console.error('Video.js error:', error);
+      });
+
+      playerRef.current.on('loadstart', () => {
+        setIsLoading(true);
+        setError(null);
+      });
+
+      playerRef.current.on('canplay', () => {
+        setIsLoading(false);
+      });
+
+      playerRef.current.on('fullscreenchange', () => {
+        setIsFullscreen(playerRef.current.isFullscreen());
+      });
+
+    } catch (err) {
+      console.error('Failed to initialize Video.js player:', err);
+      setError('Failed to initialize video player.');
+      setIsLoading(false);
+    }
+  }, [videoUrl, isYouTube, isVimeo]);
+
+  const retryVideo = useCallback(() => {
+    if (playerRef.current) {
+      playerRef.current.dispose();
+      playerRef.current = null;
+    }
+    setError(null);
+    setTimeout(initializePlayer, 100);
+  }, [initializePlayer]);
+
+  // Initialize player when component mounts or URL changes
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      const isCurrentlyFullscreen = !!(
-        document.fullscreenElement ||
-        (document as any).webkitFullscreenElement ||
-        (document as any).mozFullScreenElement ||
-        (document as any).msFullscreenElement
-      );
-      setIsFullscreen(isCurrentlyFullscreen);
-    };
-
-    // Add event listeners for fullscreen changes
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+    if (isOpen && videoUrl && !isYouTube && !isVimeo) {
+      initializePlayer();
+    }
 
     return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+      if (playerRef.current) {
+        playerRef.current.dispose();
+        playerRef.current = null;
+      }
     };
-  }, []);
+  }, [isOpen, videoUrl, initializePlayer, isYouTube, isVimeo]);
 
-  // Mount/unmount effects
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isOpen) return;
+
+      if (e.key === 'Escape') {
+        if (isFullscreen && playerRef.current) {
+          playerRef.current.exitFullscreen();
+        } else {
+          handleClose();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isFullscreen, handleClose]);
+
+  // Prevent body scroll when player is open
   useEffect(() => {
     if (isOpen) {
-      setIsMounted(true);
-      document.addEventListener('keydown', handleKeyDown);
-      document.addEventListener('mousemove', handleMouseMove);
       document.body.style.overflow = 'hidden';
-      resetControlsTimeout();
     } else {
-      setIsMounted(false);
       document.body.style.overflow = 'unset';
     }
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('mousemove', handleMouseMove);
       document.body.style.overflow = 'unset';
-      if (controlsTimeoutRef.current) {
-        clearTimeout(controlsTimeoutRef.current);
-      }
     };
-  }, [isOpen, handleKeyDown, handleMouseMove, resetControlsTimeout]);
-
-  // Update video playback speed
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.playbackRate = playbackSpeed;
-    }
-  }, [playbackSpeed]);
-
-  // Control functions
-  const handleSeek = (value: number[]) => {
-    const newTime = (value[0] / 100) * playbackState.duration;
-    playbackControls.seek(newTime);
-  };
-
-  const handleVolumeChange = (value: number[]) => {
-    playbackControls.setVolume(value[0] / 100);
-  };
-
-  const skip = (seconds: number) => {
-    const newTime = Math.max(0, Math.min(playbackState.duration, playbackState.currentTime + seconds));
-    playbackControls.seek(newTime);
-  };
-
-
-  const handleResolutionChange = useCallback((resolution: typeof currentResolution) => {
-    if (!resolution || !videoRef.current) return;
-    
-    // Store current playback position and state
-    const currentPosition = playbackState.currentTime;
-    const wasPlaying = playbackState.isPlaying;
-    
-    setIsResolutionSwitching(true);
-    
-    // Switch to new resolution
-    switchResolution(resolution);
-    
-    // The video will reinitialize with the new URL through the useVideoPlayback hook
-    // We'll restore the position once the new video is loaded
-    setTimeout(() => {
-      if (videoRef.current) {
-        playbackControls.seek(currentPosition);
-        if (wasPlaying) {
-          playbackControls.play();
-        }
-        setIsResolutionSwitching(false);
-      }
-    }, 1000);
-  }, [playbackState.currentTime, playbackState.isPlaying, switchResolution, playbackControls]);
-
-  const getVolumeIcon = () => {
-    if (playbackState.isMuted || playbackState.volume === 0) return VolumeX;
-    if (playbackState.volume < 0.5) return Volume1;
-    return Volume2;
-  };
-
-  // Debug logging
-  // Enhanced video player with better UX
-  const playerReady = isYouTube || isVimeo || (effectiveVideoUrl && (playbackState.canPlay || playbackState.isLoading));
-  const shouldShowControls = !isYouTube && !isVimeo && effectiveVideoUrl;
-  const hasVideoContent = effectiveVideoUrl && (isYouTube || isVimeo || currentUrl);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
     <ErrorBoundary>
       <div 
-        ref={containerRef}
         className="fixed inset-0 bg-black z-50 flex items-center justify-center"
         onClick={handleClose}
         role="dialog"
         aria-modal="true"
         aria-labelledby="video-player-title"
-        aria-describedby="video-player-description"
       >
-        {/* Video Container */}
         <div 
           className="relative w-full h-full"
           onClick={(e) => e.stopPropagation()}
-          onMouseMove={handleMouseMove}
         >
           {/* Close Button */}
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-4 right-4 z-[60] text-white hover:bg-white/20 pointer-events-auto"
+            className="absolute top-4 right-4 z-[60] text-white hover:bg-white/20"
             onClick={handleClose}
           >
             <X className="w-6 h-6" />
           </Button>
 
+          {/* Title */}
+          <div className="absolute top-4 left-4 z-[60] text-white">
+            <h2 id="video-player-title" className="text-xl font-semibold">
+              {title}
+            </h2>
+          </div>
+
           {/* Loading Indicator */}
-          {(playbackState.isLoading || isResolutionSwitching) && (
+          {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-40">
               <Loader2 className="w-12 h-12 text-white animate-spin" />
-              {isResolutionSwitching && (
-                <div className="absolute top-20 text-white text-sm">
-                  Switching to {currentResolution?.resolution}...
-                </div>
-              )}
             </div>
           )}
 
           {/* Error Display */}
-          {playbackState.hasError && playbackState.error && (
+          {error && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-40">
               <div className="text-center text-white max-w-lg mx-4">
                 <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold mb-2">Playback Error</h3>
-                <p className="text-gray-300 mb-4">{playbackState.error}</p>
+                <p className="text-gray-300 mb-4">{error}</p>
                 
-                {/* Additional help for CORS issues */}
-                {playbackState.error.includes('CORS') && (
+                {error.includes('CORS') && (
                   <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 mb-4 text-sm">
                     <p className="text-yellow-200">
                       <strong>Technical Info:</strong> This video is hosted on an external server that doesn't allow direct playback. 
@@ -386,39 +246,12 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
                 <div className="flex space-x-3 justify-center">
                   <Button
                     variant="outline"
-                    onClick={playbackControls.retry}
+                    onClick={retryVideo}
                     className="text-white border-white/30 hover:bg-white/10"
                   >
                     <RotateCcw className="w-4 h-4 mr-2" />
                     Retry
                   </Button>
-                  
-                  {/* Show fallback option if available */}
-                  {hasMoreFallbacks && (
-                    <Button
-                      variant="outline"
-                      onClick={playbackControls.retry}
-                      className="text-white border-white/30 hover:bg-white/10"
-                    >
-                      Try Fallback
-                    </Button>
-                  )}
-                  
-                  {/* Show different quality option for videos with resolutions */}
-                  {hasMultipleResolutions && resolutions.length > 1 && (
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        const nextResolution = resolutions.find(r => r.id !== currentResolution?.id);
-                        if (nextResolution) {
-                          switchResolution(nextResolution);
-                        }
-                      }}
-                      className="text-white border-white/30 hover:bg-white/10"
-                    >
-                      Try Different Quality
-                    </Button>
-                  )}
                   
                   <Button
                     variant="ghost"
@@ -432,8 +265,8 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
             </div>
           )}
 
-          {/* Video Element */}
-          {effectiveVideoUrl ? (
+          {/* Video Content */}
+          {videoUrl ? (
             isYouTube ? (
               <iframe
                 src={youTubeEmbedUrl}
@@ -453,206 +286,24 @@ const VideoPlayer = memo(({ title, videoUrl, isOpen, onClose, videoId }: VideoPl
                 title={`Vimeo video: ${title}`}
               />
             ) : (
-              <video
-                ref={videoRef}
-                className="w-full h-full object-contain cursor-pointer"
-                onClick={playbackControls.togglePlay}
-                onDoubleClick={toggleFullscreen}
-                preload="metadata"
-                playsInline
-                controls={false}
-                controlsList="nodownload nofullscreen noremoteplayback"
-                crossOrigin="anonymous"
-              >
-                <source src={currentUrl || effectiveVideoUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
+              <div 
+                ref={videoRef} 
+                className="w-full h-full flex items-center justify-center"
+                style={{ minHeight: '400px' }}
+              />
             )
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-900">
               <div className="text-center text-white">
-                <h2 id="video-player-title" className="text-3xl font-bold mb-4">{title}</h2>
-                <p id="video-player-description" className="text-gray-400 mb-8">Video content will be available soon</p>
-                <div className="w-16 h-16 mx-auto bg-white/10 rounded-full flex items-center justify-center">
-                  <Play className="w-8 h-8 text-white" />
-                </div>
+                <h2 className="text-3xl font-bold mb-4">{title}</h2>
+                <p className="text-xl text-gray-400">No video source available</p>
               </div>
             </div>
           )}
-
-          {/* Enhanced Video Controls */}
-          {effectiveVideoUrl && !isYouTube && !isVimeo && (
-            <div 
-              className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-6 transition-opacity duration-300 ${
-                showVideoControls ? 'opacity-100' : 'opacity-0'
-              }`}
-              onMouseEnter={() => setShowVideoControls(true)}
-            >
-              {/* Progress Bar */}
-              <div className="mb-4">
-                <div className="relative">
-                  {/* Buffered Progress */}
-                  <div 
-                    className="absolute top-1/2 left-0 h-1 bg-white/30 rounded-full"
-                    style={{ width: `${playbackState.buffered}%`, transform: 'translateY(-50%)' }}
-                  />
-                  {/* Seek Slider */}
-                  <Slider
-                    value={[playbackState.duration > 0 ? (playbackState.currentTime / playbackState.duration) * 100 : 0]}
-                    onValueChange={handleSeek}
-                    max={100}
-                    step={0.1}
-                    className="w-full cursor-pointer"
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-white/70 mt-1">
-                  <span>{formatTime(playbackState.currentTime)}</span>
-                  <span>{formatTime(playbackState.duration)}</span>
-                </div>
-              </div>
-
-              {/* Control Buttons */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  {/* Play/Pause */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-white hover:bg-white/20"
-                    onClick={playbackControls.togglePlay}
-                  >
-                    {playbackState.isPlaying ? (
-                      <Pause className="w-6 h-6" />
-                    ) : (
-                      <Play className="w-6 h-6" />
-                    )}
-                  </Button>
-
-                  {/* Skip Back */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-white hover:bg-white/20"
-                    onClick={() => skip(-10)}
-                  >
-                    <SkipBack className="w-5 h-5" />
-                  </Button>
-
-                  {/* Skip Forward */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-white hover:bg-white/20"
-                    onClick={() => skip(10)}
-                  >
-                    <SkipForward className="w-5 h-5" />
-                  </Button>
-
-                  {/* Volume Control */}
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-white hover:bg-white/20"
-                      onClick={playbackControls.toggleMute}
-                    >
-                      {React.createElement(getVolumeIcon(), { className: "w-5 h-5" })}
-                    </Button>
-                    <div className="w-20">
-                      <Slider
-                        value={[playbackState.volume * 100]}
-                        onValueChange={handleVolumeChange}
-                        max={100}
-                        step={1}
-                        className="cursor-pointer"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="text-white text-sm ml-4">
-                    <h3 className="font-semibold truncate max-w-xs">{title}</h3>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  {/* Resolution Selector - only show if valid videoId and multiple resolutions */}
-                  {isValidVideoId && hasMultipleResolutions && (
-                    <ResolutionSelector
-                      resolutions={resolutions}
-                      currentResolution={currentResolution}
-                      onResolutionChange={handleResolutionChange}
-                      isLoading={isResolutionSwitching}
-                      disabled={isYouTube}
-                    />
-                  )}
-                  
-                  {/* Playback Speed */}
-                  <Select value={playbackSpeed.toString()} onValueChange={(value) => {
-                    const speed = Number(value);
-                    setPlaybackSpeed(speed);
-                    playbackControls.setPlaybackRate(speed);
-                  }}>
-                    <SelectTrigger className="w-16 h-8 text-white border-white/30 bg-black/90 hover:bg-black/70 focus:ring-2 focus:ring-white/50 z-50">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-black/95 border-white/30 text-white z-[60]">
-                      <SelectItem value="0.5" className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer">0.5x</SelectItem>
-                      <SelectItem value="0.75" className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer">0.75x</SelectItem>
-                      <SelectItem value="1" className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer">1x</SelectItem>
-                      <SelectItem value="1.25" className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer">1.25x</SelectItem>
-                      <SelectItem value="1.5" className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer">1.5x</SelectItem>
-                      <SelectItem value="2" className="text-white hover:bg-white/20 focus:bg-white/20 cursor-pointer">2x</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {/* Picture-in-Picture */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-white hover:bg-white/20"
-                    onClick={() => {
-                      if (videoRef.current && 'requestPictureInPicture' in videoRef.current) {
-                        videoRef.current.requestPictureInPicture();
-                      }
-                    }}
-                  >
-                    <Maximize2 className="w-5 h-5" />
-                  </Button>
-
-                  {/* Fullscreen */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-white hover:bg-white/20"
-                    onClick={toggleFullscreen}
-                  >
-                    <Maximize className="w-6 h-6" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {/* YouTube Video Title Overlay */}
-          {effectiveVideoUrl && isYouTube && (
-            <div 
-              className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 transition-opacity duration-300 ${
-                showVideoControls ? 'opacity-100' : 'opacity-0'
-              }`}
-              onMouseEnter={() => setShowVideoControls(true)}
-            >
-              <h3 className="text-white font-semibold">{title}</h3>
-            </div>
-          )}
-
-          {/* Keyboard Shortcuts Help */}
-          <div className="absolute top-4 left-4 text-white/70 text-xs">
-            <p>Space: Play/Pause | ← →: Seek | ↑ ↓: Volume | F: Fullscreen | M: Mute</p>
-          </div>
         </div>
       </div>
     </ErrorBoundary>
   );
-});
+};
 
 export default VideoPlayer;
