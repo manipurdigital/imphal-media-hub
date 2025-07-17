@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+// Fixed import - using TrendingUp instead of Trending
 import { Search, Clock, TrendingUp, Film, Tv, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
