@@ -60,7 +60,7 @@ const ContentCarousel = ({ title, items, loading = false }: ContentCarouselProps
         </h2>
       </div>
       
-      <div className="netflix-carousel" ref={scrollRef}>
+      <div className="netflix-carousel min-h-[370px]" ref={scrollRef}>
         <div className="netflix-carousel-container">
           {loading ? (
             // Loading skeletons

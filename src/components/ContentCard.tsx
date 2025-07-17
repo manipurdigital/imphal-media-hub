@@ -129,14 +129,21 @@ const ContentCard: React.FC<ContentCardProps> = ({
                 <span>{duration}</span>
                 <span>•</span>
                 <span>{genre}</span>
-                <span>•</span>
-                <span className="flex items-center">
-                  <span className="text-yellow-400 mr-1">★</span>
-                  {rating}
-                </span>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Content Info Section - Always Visible */}
+        <div className="content-card-info">
+          <h3 className="content-card-title">{title}</h3>
+          <div className="content-card-rating">
+            <span className="text-yellow-400">★</span>
+            <span>{rating}</span>
+          </div>
+          <p className="content-card-description">
+            {description || 'No description available'}
+          </p>
         </div>
       </div>
 
