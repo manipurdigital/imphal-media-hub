@@ -264,26 +264,26 @@
     border: none;
     border-radius: 0.25rem;
     overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.2s ease-out;
     cursor: pointer;
     position: relative;
   }
 
   .content-card:hover {
-    transform: scale(1.05);
+    transform: scale(1.02);
     z-index: 20;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
   }
 
   .content-card-image {
     width: 100%;
     aspect-ratio: 16/9;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: transform 0.2s ease-out;
   }
 
   .content-card:hover .content-card-image {
-    transform: scale(1.02);
+    transform: scale(1.01);
   }
 
   .content-card-overlay {
@@ -338,7 +338,7 @@
   
   .btn-primary {
     @apply bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold
-           hover:scale-105 active:scale-95 transition-all duration-200 glow-effect
+           hover:scale-102 active:scale-95 transition-all duration-150 glow-effect
            hover:glow-effect-strong focus:glow-effect-strong
            focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2
            focus:ring-offset-background;
@@ -354,7 +354,7 @@
   
   /* Enhanced Interactive Elements */
   .interactive-scale {
-    @apply transition-transform duration-200 hover:scale-105 active:scale-95;
+    @apply transition-transform duration-150 hover:scale-102 active:scale-95;
   }
   
   .interactive-glow {
