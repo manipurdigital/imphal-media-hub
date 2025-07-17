@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
-import { X, Loader2, AlertCircle, RotateCcw } from 'lucide-react';
+import { X, Loader2, AlertCircle, RotateCcw, Settings, Check } from 'lucide-react';
 import { isYouTubeUrl, extractYouTubeVideoId, getYouTubeEmbedUrl } from '@/utils/youtube';
 import { isVimeoUrl, extractVimeoVideoId, getVimeoEmbedUrl } from '@/utils/vimeo';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { useVideoResolutions } from '@/hooks/useVideoResolutions';
 
 interface VideoPlayerProps {
   title: string;
@@ -21,6 +22,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ title, videoUrl, isOpen, onCl
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showQualitySelector, setShowQualitySelector] = useState(false);
+
+  // Video resolutions hook
+  const { 
+    resolutions, 
+    currentResolution, 
+    isLoading: resolutionsLoading, 
+    switchResolution, 
+    hasMultipleResolutions 
+  } = useVideoResolutions(videoId || null);
+
+  // Use current resolution URL or fallback to original videoUrl
+  const activeVideoUrl = currentResolution?.processed_url || currentResolution?.source_url || videoUrl;
 
   // Check for YouTube/Vimeo URLs
   const isYouTube = videoUrl ? isYouTubeUrl(videoUrl) : false;
@@ -45,7 +59,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ title, videoUrl, isOpen, onCl
   }, [onClose]);
 
   const initializePlayer = useCallback(() => {
-    if (!videoRef.current || !videoUrl || isYouTube || isVimeo) return;
+    if (!videoRef.current || !activeVideoUrl || isYouTube || isVimeo) return;
 
     setIsLoading(true);
     setError(null);
@@ -94,15 +108,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ title, videoUrl, isOpen, onCl
           pictureInPictureToggle: true
         },
         sources: [{
-          src: videoUrl,
-          type: videoUrl.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4'
+          src: activeVideoUrl,
+          type: activeVideoUrl.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4'
         }]
       });
 
       // Event handlers
       playerRef.current.ready(() => {
         setIsLoading(false);
-        console.log('Video.js player ready');
+        console.log('Video.js player ready with resolution:', currentResolution?.quality_label || 'default');
         
         // Enable seeking
         playerRef.current.on('loadedmetadata', () => {
@@ -156,7 +170,29 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ title, videoUrl, isOpen, onCl
       setError('Failed to initialize video player.');
       setIsLoading(false);
     }
-  }, [videoUrl, isYouTube, isVimeo]);
+  }, [activeVideoUrl, isYouTube, isVimeo, currentResolution]);
+
+  const handleResolutionChange = useCallback(async (resolution: typeof currentResolution) => {
+    if (!resolution || !playerRef.current) return;
+    
+    // Store current time position
+    const currentTime = playerRef.current.currentTime();
+    const wasPaused = playerRef.current.paused();
+    
+    // Switch resolution
+    switchResolution(resolution);
+    setShowQualitySelector(false);
+    
+    // Wait for the new source to be ready and restore playback position
+    setTimeout(() => {
+      if (playerRef.current) {
+        playerRef.current.currentTime(currentTime);
+        if (!wasPaused) {
+          playerRef.current.play();
+        }
+      }
+    }, 100);
+  }, [switchResolution]);
 
   const retryVideo = useCallback(() => {
     if (playerRef.current) {
@@ -173,7 +209,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ title, videoUrl, isOpen, onCl
 
   // Initialize player when component mounts or URL changes
   useEffect(() => {
-    if (isOpen && videoUrl && !isYouTube && !isVimeo) {
+    if (isOpen && activeVideoUrl && !isYouTube && !isVimeo) {
       const timer = setTimeout(initializePlayer, 100);
       return () => clearTimeout(timer);
     }
@@ -188,15 +224,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ title, videoUrl, isOpen, onCl
         playerRef.current = null;
       }
     };
-  }, [isOpen, videoUrl, initializePlayer, isYouTube, isVimeo]);
+  }, [isOpen, activeVideoUrl, initializePlayer, isYouTube, isVimeo]);
 
-  // Handle keyboard shortcuts
+  // Handle keyboard shortcuts and click outside
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
 
       if (e.key === 'Escape') {
-        if (isFullscreen && playerRef.current) {
+        if (showQualitySelector) {
+          setShowQualitySelector(false);
+        } else if (isFullscreen && playerRef.current) {
           playerRef.current.exitFullscreen();
         } else {
           handleClose();
@@ -204,9 +242,20 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ title, videoUrl, isOpen, onCl
       }
     };
 
+    const handleClickOutside = (e: MouseEvent) => {
+      if (showQualitySelector && e.target instanceof Element && !e.target.closest('.quality-selector')) {
+        setShowQualitySelector(false);
+      }
+    };
+
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, isFullscreen, handleClose]);
+    document.addEventListener('click', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [isOpen, isFullscreen, handleClose, showQualitySelector]);
 
   // Prevent body scroll when player is open
   useEffect(() => {
@@ -316,7 +365,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ title, videoUrl, isOpen, onCl
                     title={`Vimeo video: ${title}`}
                   />
                 ) : (
-                  <div className="w-full h-full bg-black rounded-lg overflow-hidden">
+                  <div className="w-full h-full bg-black rounded-lg overflow-hidden relative">
                     <video
                       ref={videoRef}
                       className="video-js vjs-default-skin w-full h-full"
@@ -333,6 +382,45 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ title, videoUrl, isOpen, onCl
                         </a>.
                       </p>
                     </video>
+                    
+                    {/* Quality Selector Button */}
+                    {hasMultipleResolutions && (
+                      <div className="absolute top-4 right-4 z-50 quality-selector">
+                        <div className="relative">
+                          <button
+                            onClick={() => setShowQualitySelector(!showQualitySelector)}
+                            className="bg-black/70 hover:bg-black/90 text-white px-3 py-2 rounded-lg flex items-center space-x-2 text-sm font-medium transition-colors backdrop-blur-sm"
+                            aria-label="Quality settings"
+                          >
+                            <Settings className="w-4 h-4" />
+                            <span>{currentResolution?.quality_label || 'Auto'}</span>
+                          </button>
+                          
+                          {/* Quality Dropdown */}
+                          {showQualitySelector && (
+                            <div className="absolute top-full right-0 mt-2 bg-black/90 backdrop-blur-md rounded-lg shadow-2xl border border-white/10 min-w-[120px] z-60">
+                              <div className="py-2">
+                                <div className="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider border-b border-white/10">
+                                  Quality
+                                </div>
+                                {resolutions.map((resolution) => (
+                                  <button
+                                    key={resolution.id}
+                                    onClick={() => handleResolutionChange(resolution)}
+                                    className="w-full px-3 py-2 text-left text-white hover:bg-white/10 flex items-center justify-between text-sm transition-colors"
+                                  >
+                                    <span>{resolution.quality_label}</span>
+                                    {currentResolution?.id === resolution.id && (
+                                      <Check className="w-4 h-4 text-red-500" />
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )
               ) : (
