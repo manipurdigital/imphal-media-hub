@@ -264,9 +264,11 @@
     border: none;
     border-radius: 0.25rem;
     overflow: hidden;
-    transition: all 0.2s ease-out;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
     cursor: pointer;
     position: relative;
+    will-change: transform;
+    transform-origin: center;
   }
 
   .content-card:hover {
