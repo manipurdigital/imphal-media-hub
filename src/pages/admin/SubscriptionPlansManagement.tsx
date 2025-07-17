@@ -17,6 +17,7 @@ interface SubscriptionPlan {
   currency: string;
   billing_cycle: 'monthly' | 'yearly' | 'one-time';
   stripe_price_id: string | null;
+  razorpay_plan_id: string | null;
   is_active: boolean;
   is_featured: boolean;
   display_order: number;

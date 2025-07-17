@@ -74,6 +74,7 @@ const Navigation: React.FC<NavigationProps> = ({ onSearch }) => {
           <NavLink to="/movies" text="Movies" />
           <NavLink to="/tv-shows" text="TV Shows" />
           <NavLink to="/my-list" text="My List" />
+          <NavLink to="/subscription" text="Subscription" />
         </div>
 
         {/* Right Section */}
@@ -189,6 +190,7 @@ const Navigation: React.FC<NavigationProps> = ({ onSearch }) => {
                 <MobileNavLink to="/movies" text="Movies" onClick={() => setIsMobileMenuOpen(false)} />
                 <MobileNavLink to="/tv-shows" text="TV Shows" onClick={() => setIsMobileMenuOpen(false)} />
                 <MobileNavLink to="/my-list" text="My List" onClick={() => setIsMobileMenuOpen(false)} />
+                <MobileNavLink to="/subscription" text="Subscription" onClick={() => setIsMobileMenuOpen(false)} />
                 
                  {user && (
                    <>

@@ -25,6 +25,8 @@ import Movies from "./pages/Movies";
 import TVShows from "./pages/TVShows";
 import MyList from "./pages/MyList";
 import Profile from "./pages/Profile";
+import Subscription from "./pages/Subscription";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +46,7 @@ const App = () => (
             <Route path="/tv-shows" element={<TVShows />} />
             <Route path="/my-list" element={<MyList />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={

@@ -218,6 +218,56 @@ export type Database = {
         }
         Relationships: []
       }
+      subscribers: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          email: string
+          id: string
+          razorpay_customer_id: string | null
+          razorpay_subscription_id: string | null
+          subscription_plan_id: string | null
+          subscription_status: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          email: string
+          id?: string
+          razorpay_customer_id?: string | null
+          razorpay_subscription_id?: string | null
+          subscription_plan_id?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          email?: string
+          id?: string
+          razorpay_customer_id?: string | null
+          razorpay_subscription_id?: string | null
+          subscription_plan_id?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscribers_subscription_plan_id_fkey"
+            columns: ["subscription_plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           billing_cycle: Database["public"]["Enums"]["billing_cycle"]
@@ -230,6 +280,7 @@ export type Database = {
           is_featured: boolean
           name: string
           price: number
+          razorpay_plan_id: string | null
           stripe_price_id: string | null
           updated_at: string
         }
@@ -244,6 +295,7 @@ export type Database = {
           is_featured?: boolean
           name: string
           price: number
+          razorpay_plan_id?: string | null
           stripe_price_id?: string | null
           updated_at?: string
         }
@@ -258,6 +310,7 @@ export type Database = {
           is_featured?: boolean
           name?: string
           price?: number
+          razorpay_plan_id?: string | null
           stripe_price_id?: string | null
           updated_at?: string
         }

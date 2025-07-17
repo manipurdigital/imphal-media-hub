@@ -18,6 +18,7 @@ interface SubscriptionPlan {
   currency: string;
   billing_cycle: 'monthly' | 'yearly' | 'one-time';
   stripe_price_id: string | null;
+  razorpay_plan_id: string | null;
   is_active: boolean;
   is_featured: boolean;
   display_order: number;
@@ -39,6 +40,7 @@ export const SubscriptionPlanForm: React.FC<SubscriptionPlanFormProps> = ({
     currency: plan?.currency || 'INR',
     billing_cycle: plan?.billing_cycle || 'monthly',
     stripe_price_id: plan?.stripe_price_id || '',
+    razorpay_plan_id: plan?.razorpay_plan_id || '',
     is_active: plan?.is_active ?? true,
     is_featured: plan?.is_featured ?? false,
     display_order: plan?.display_order || 0,
@@ -173,17 +175,32 @@ export const SubscriptionPlanForm: React.FC<SubscriptionPlanFormProps> = ({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="stripe_price_id">Stripe Price ID</Label>
-            <Input
-              id="stripe_price_id"
-              value={formData.stripe_price_id}
-              onChange={(e) => handleInputChange('stripe_price_id', e.target.value)}
-              placeholder="price_1234567890"
-            />
-            <p className="text-xs text-muted-foreground">
-              Optional: Enter the Stripe Price ID for integration with Stripe checkout
-            </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="stripe_price_id">Stripe Price ID</Label>
+              <Input
+                id="stripe_price_id"
+                value={formData.stripe_price_id}
+                onChange={(e) => handleInputChange('stripe_price_id', e.target.value)}
+                placeholder="price_1234567890"
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional: Enter the Stripe Price ID for integration with Stripe checkout
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="razorpay_plan_id">Razorpay Plan ID</Label>
+              <Input
+                id="razorpay_plan_id"
+                value={formData.razorpay_plan_id}
+                onChange={(e) => handleInputChange('razorpay_plan_id', e.target.value)}
+                placeholder="plan_1234567890"
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional: Enter the Razorpay Plan ID for integration with Razorpay checkout
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center justify-between">
