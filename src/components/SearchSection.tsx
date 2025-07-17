@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import SearchSuggestions from '@/components/SearchSuggestions';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface SearchSectionProps {
   onSearch: (query: string, filters?: any) => void;
@@ -15,6 +16,14 @@ const SearchSection: React.FC<SearchSectionProps> = ({
 }) => {
   const [query, setQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const debouncedQuery = useDebounce(query, 400);
+
+  // Auto-search when user stops typing
+  useEffect(() => {
+    if (debouncedQuery.trim() && debouncedQuery.length >= 2) {
+      onSearch(debouncedQuery.trim());
+    }
+  }, [debouncedQuery, onSearch]);
 
   const handleSearch = () => {
     if (query.trim()) {
