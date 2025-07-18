@@ -818,6 +818,10 @@ export type Database = {
         Args: { _user_id: string; _current_session_token: string }
         Returns: number
       }
+      unset_featured_video: {
+        Args: { _video_id: string }
+        Returns: undefined
+      }
       validate_video_url_accessibility: {
         Args: Record<PropertyKey, never>
         Returns: {

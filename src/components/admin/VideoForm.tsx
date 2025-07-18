@@ -210,16 +210,19 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
       }
 
       // Handle featured video logic
-      if (data.is_featured && videoId) {
-        const { error: featuredError } = await supabase
-          .rpc('set_featured_video', { _video_id: videoId });
+      if (videoId) {
+        if (data.is_featured) {
+          const { error: featuredError } = await supabase
+            .rpc('set_featured_video', { _video_id: videoId });
 
-        if (featuredError) throw featuredError;
+          if (featuredError) throw featuredError;
+        } else if (video?.is_featured && !data.is_featured) {
+          // If it was featured but now it's not, unfeature it
+          const { error: unfeaturedError } = await supabase
+            .rpc('unset_featured_video', { _video_id: videoId });
 
-        toast({
-          title: "Featured video set",
-          description: "This video is now featured on the homepage.",
-        });
+          if (unfeaturedError) throw unfeaturedError;
+        }
       }
 
       onSuccess();
