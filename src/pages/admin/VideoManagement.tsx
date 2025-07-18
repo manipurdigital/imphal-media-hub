@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Trash2, Eye, Video, Search, Filter, Activity } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Video, Search, Filter, Activity, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { VideoForm } from '@/components/admin/VideoForm';
 import { VideoHealthDashboard } from '@/components/admin/VideoHealthDashboard';
@@ -180,6 +180,12 @@ export const VideoManagement = () => {
                   <p className="text-sm text-muted-foreground">{video.description}</p>
                 </div>
                 <div className="flex items-center gap-2">
+                  {video.is_featured && (
+                    <Badge variant="default" className="bg-yellow-500 text-black hover:bg-yellow-600">
+                      <Star className="h-3 w-3 mr-1" />
+                      Featured
+                    </Badge>
+                  )}
                   <Badge variant={video.content_status === 'published' ? 'default' : 'secondary'}>
                     {video.content_status}
                   </Badge>

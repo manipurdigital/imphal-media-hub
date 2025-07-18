@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Upload, X, FileVideo, Image, Monitor } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Upload, X, FileVideo, Image, Monitor, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { isYouTubeUrl } from '@/utils/youtube';
 import { isVimeoUrl } from '@/utils/vimeo';
@@ -43,6 +44,7 @@ const videoFormSchema = z.object({
   quality_label: z.string().min(1, "Quality label is required"),
   bitrate: z.number().optional(),
   is_default: z.boolean().optional(),
+  is_featured: z.boolean().optional(),
 });
 
 type VideoFormData = z.infer<typeof videoFormSchema>;
@@ -97,6 +99,7 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
       quality_label: 'Standard',
       bitrate: undefined,
       is_default: true,
+      is_featured: video?.is_featured || false,
     },
   });
 
@@ -157,6 +160,8 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
         thumbnail_url: thumbnailUrl || null,
       };
 
+      let videoId = video?.id;
+
       if (video?.id) {
         // Update existing video
         const { error } = await supabase
@@ -179,6 +184,7 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
           .single();
 
         if (error) throw error;
+        videoId = videoResult.id;
 
         // Create video_sources entry for the uploaded video
         const videoSourceData = {
@@ -200,6 +206,19 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
         toast({
           title: "Video created",
           description: "The video has been successfully created with resolution settings.",
+        });
+      }
+
+      // Handle featured video logic
+      if (data.is_featured && videoId) {
+        const { error: featuredError } = await supabase
+          .rpc('set_featured_video', { _video_id: videoId });
+
+        if (featuredError) throw featuredError;
+
+        toast({
+          title: "Featured video set",
+          description: "This video is now featured on the homepage.",
         });
       }
 
@@ -315,7 +334,7 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
             />
 
             {/* Content Type and Status */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="content_type"
@@ -357,6 +376,32 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
                         <SelectItem value="archived">Archived</SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Featured Video Toggle */}
+              <FormField
+                control={form.control}
+                name="is_featured"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col justify-center">
+                    <div className="flex items-center space-x-2">
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="flex items-center gap-2">
+                        <Star className="h-4 w-4 text-yellow-500" />
+                        Featured Video
+                      </FormLabel>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Display as hero video on homepage
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}

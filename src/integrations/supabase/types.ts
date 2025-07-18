@@ -666,6 +666,7 @@ export type Database = {
           genre: string
           hosting_type: string | null
           id: string
+          is_featured: boolean
           production_year: number | null
           rating: number | null
           search_vector: unknown | null
@@ -690,6 +691,7 @@ export type Database = {
           genre: string
           hosting_type?: string | null
           id?: string
+          is_featured?: boolean
           production_year?: number | null
           rating?: number | null
           search_vector?: unknown | null
@@ -714,6 +716,7 @@ export type Database = {
           genre?: string
           hosting_type?: string | null
           id?: string
+          is_featured?: boolean
           production_year?: number | null
           rating?: number | null
           search_vector?: unknown | null
@@ -806,6 +809,10 @@ export type Database = {
           removed_count: number
           removed_titles: string[]
         }[]
+      }
+      set_featured_video: {
+        Args: { _video_id: string }
+        Returns: undefined
       }
       terminate_other_sessions: {
         Args: { _user_id: string; _current_session_token: string }
