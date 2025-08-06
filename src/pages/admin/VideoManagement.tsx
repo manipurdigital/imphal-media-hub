@@ -28,6 +28,7 @@ export const VideoManagement = () => {
       const { data, error } = await supabase
         .from('videos')
         .select('*')
+        .is('deleted_at', null) // Only get non-deleted videos
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -37,9 +38,10 @@ export const VideoManagement = () => {
 
   const deleteVideoMutation = useMutation({
     mutationFn: async (videoId: string) => {
+      // Use soft delete by setting deleted_at timestamp
       const { error } = await supabase
         .from('videos')
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq('id', videoId);
 
       if (error) throw error;

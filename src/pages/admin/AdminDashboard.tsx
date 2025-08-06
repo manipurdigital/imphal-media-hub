@@ -8,7 +8,7 @@ export const AdminDashboard = () => {
     queryKey: ['adminStats'],
     queryFn: async () => {
       const [videos, users, collections, categories] = await Promise.all([
-        supabase.from('videos').select('id', { count: 'exact', head: true }),
+        supabase.from('videos').select('id', { count: 'exact', head: true }).is('deleted_at', null),
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('collections').select('id', { count: 'exact', head: true }),
         supabase.from('categories').select('id', { count: 'exact', head: true }),

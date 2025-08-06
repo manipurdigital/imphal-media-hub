@@ -63,7 +63,7 @@ export const Analytics = () => {
     queryFn: async () => {
       // Get comprehensive analytics data
       const [videos, users, collections, categories] = await Promise.all([
-        supabase.from('videos').select('*'),
+        supabase.from('videos').select('*').is('deleted_at', null),
         supabase.from('profiles').select('*'),
         supabase.from('collections').select('*'),
         supabase.from('categories').select('*'),
@@ -73,6 +73,7 @@ export const Analytics = () => {
       const topVideos = await supabase
         .from('videos')
         .select('title, view_count, rating, content_type, created_at, duration')
+        .is('deleted_at', null)
         .order('view_count', { ascending: false })
         .limit(10);
 

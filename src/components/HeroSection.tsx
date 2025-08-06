@@ -18,6 +18,7 @@ const HeroSection: React.FC = () => {
         .select('*')
         .eq('is_featured', true)
         .eq('content_status', 'published')
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
