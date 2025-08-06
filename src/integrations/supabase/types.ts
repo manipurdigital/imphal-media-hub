@@ -167,6 +167,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          role: string | null
           updated_at: string
           user_id: string
           username: string | null
@@ -176,6 +177,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          role?: string | null
           updated_at?: string
           user_id: string
           username?: string | null
@@ -185,6 +187,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          role?: string | null
           updated_at?: string
           user_id?: string
           username?: string | null
@@ -217,6 +220,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "search_history_clicked_video_id_fkey"
+            columns: ["clicked_video_id"]
+            isOneToOne: false
+            referencedRelation: "video_engagement"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "search_history_clicked_video_id_fkey"
             columns: ["clicked_video_id"]
@@ -396,6 +406,13 @@ export type Database = {
             foreignKeyName: "user_favorites_video_id_fkey"
             columns: ["video_id"]
             isOneToOne: false
+            referencedRelation: "video_engagement"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorites_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
             referencedRelation: "videos"
             referencedColumns: ["id"]
           },
@@ -525,6 +542,13 @@ export type Database = {
             foreignKeyName: "video_categories_video_id_fkey"
             columns: ["video_id"]
             isOneToOne: false
+            referencedRelation: "video_engagement"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_categories_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
             referencedRelation: "videos"
             referencedColumns: ["id"]
           },
@@ -558,6 +582,13 @@ export type Database = {
             columns: ["collection_id"]
             isOneToOne: false
             referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_collections_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "video_engagement"
             referencedColumns: ["id"]
           },
           {
@@ -611,6 +642,13 @@ export type Database = {
             foreignKeyName: "video_sources_video_id_fkey"
             columns: ["video_id"]
             isOneToOne: false
+            referencedRelation: "video_engagement"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_sources_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
             referencedRelation: "videos"
             referencedColumns: ["id"]
           },
@@ -647,6 +685,13 @@ export type Database = {
             foreignKeyName: "video_tags_video_id_fkey"
             columns: ["video_id"]
             isOneToOne: false
+            referencedRelation: "video_engagement"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_tags_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
             referencedRelation: "videos"
             referencedColumns: ["id"]
           },
@@ -656,10 +701,14 @@ export type Database = {
         Row: {
           accessibility_checked_at: string | null
           accessibility_status: string | null
+          cast: string[] | null
           cast_members: string[] | null
           content_status: Database["public"]["Enums"]["content_status"] | null
           content_type: Database["public"]["Enums"]["content_type"] | null
           created_at: string
+          created_by: string | null
+          creator_id: string | null
+          deleted_at: string | null
           description: string | null
           director: string | null
           duration: number | null
@@ -667,24 +716,33 @@ export type Database = {
           hosting_type: string | null
           id: string
           is_featured: boolean
+          language: string | null
           production_year: number | null
           rating: number | null
+          release_year: number | null
           search_vector: unknown | null
+          subtitle: string | null
           thumbnail_url: string | null
           title: string
           trailer_url: string | null
           updated_at: string
+          updated_by: string | null
           video_url: string
           view_count: number | null
+          watch_time: number | null
           year: number | null
         }
         Insert: {
           accessibility_checked_at?: string | null
           accessibility_status?: string | null
+          cast?: string[] | null
           cast_members?: string[] | null
           content_status?: Database["public"]["Enums"]["content_status"] | null
           content_type?: Database["public"]["Enums"]["content_type"] | null
           created_at?: string
+          created_by?: string | null
+          creator_id?: string | null
+          deleted_at?: string | null
           description?: string | null
           director?: string | null
           duration?: number | null
@@ -692,24 +750,33 @@ export type Database = {
           hosting_type?: string | null
           id?: string
           is_featured?: boolean
+          language?: string | null
           production_year?: number | null
           rating?: number | null
+          release_year?: number | null
           search_vector?: unknown | null
+          subtitle?: string | null
           thumbnail_url?: string | null
           title: string
           trailer_url?: string | null
           updated_at?: string
+          updated_by?: string | null
           video_url: string
           view_count?: number | null
+          watch_time?: number | null
           year?: number | null
         }
         Update: {
           accessibility_checked_at?: string | null
           accessibility_status?: string | null
+          cast?: string[] | null
           cast_members?: string[] | null
           content_status?: Database["public"]["Enums"]["content_status"] | null
           content_type?: Database["public"]["Enums"]["content_type"] | null
           created_at?: string
+          created_by?: string | null
+          creator_id?: string | null
+          deleted_at?: string | null
           description?: string | null
           director?: string | null
           duration?: number | null
@@ -717,15 +784,20 @@ export type Database = {
           hosting_type?: string | null
           id?: string
           is_featured?: boolean
+          language?: string | null
           production_year?: number | null
           rating?: number | null
+          release_year?: number | null
           search_vector?: unknown | null
+          subtitle?: string | null
           thumbnail_url?: string | null
           title?: string
           trailer_url?: string | null
           updated_at?: string
+          updated_by?: string | null
           video_url?: string
           view_count?: number | null
+          watch_time?: number | null
           year?: number | null
         }
         Relationships: []
@@ -769,6 +841,13 @@ export type Database = {
             foreignKeyName: "viewing_history_video_id_fkey"
             columns: ["video_id"]
             isOneToOne: false
+            referencedRelation: "video_engagement"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "viewing_history_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
             referencedRelation: "videos"
             referencedColumns: ["id"]
           },
@@ -776,7 +855,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      video_engagement: {
+        Row: {
+          content_type: Database["public"]["Enums"]["content_type"] | null
+          created_at: string | null
+          duration: number | null
+          engagement_rate: number | null
+          id: string | null
+          title: string | null
+          view_count: number | null
+          watch_time: number | null
+        }
+        Insert: {
+          content_type?: Database["public"]["Enums"]["content_type"] | null
+          created_at?: string | null
+          duration?: number | null
+          engagement_rate?: never
+          id?: string | null
+          title?: string | null
+          view_count?: number | null
+          watch_time?: number | null
+        }
+        Update: {
+          content_type?: Database["public"]["Enums"]["content_type"] | null
+          created_at?: string | null
+          duration?: number | null
+          engagement_rate?: never
+          id?: string | null
+          title?: string | null
+          view_count?: number | null
+          watch_time?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cleanup_expired_sessions: {
@@ -803,6 +914,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      promote_to_admin: {
+        Args: { target_email: string }
+        Returns: undefined
+      }
       remove_unplayable_videos: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -812,6 +927,10 @@ export type Database = {
       }
       set_featured_video: {
         Args: { _video_id: string }
+        Returns: undefined
+      }
+      set_user_role: {
+        Args: { target_user: string; new_role: string }
         Returns: undefined
       }
       terminate_other_sessions: {
