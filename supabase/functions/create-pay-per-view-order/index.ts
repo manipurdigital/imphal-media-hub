@@ -58,17 +58,17 @@ serve(async (req) => {
       .select("*")
       .eq("user_id", user.id)
       .eq("content_id", contentId)
-      .eq("payment_status", "completed")
-      .eq("is_active", true)
       .single();
 
     if (existingPurchase) {
-      return new Response(JSON.stringify({ 
-        error: "You already have access to this content" 
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400,
-      });
+      if (existingPurchase.payment_status === "completed" && existingPurchase.is_active) {
+        return new Response(JSON.stringify({ 
+          error: "You already have access to this content" 
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
     }
 
     // Get Razorpay credentials
@@ -117,21 +117,38 @@ serve(async (req) => {
     const order = await response.json();
     console.log("Razorpay order created:", order);
 
-    // Create pending purchase record
-    const { error: purchaseError } = await supabaseClient
-      .from("user_purchases")
-      .insert({
-        user_id: user.id,
-        content_id: contentId,
-        purchase_amount: content.price,
-        currency: content.currency,
-        razorpay_order_id: order.id,
-        payment_status: "pending",
-        is_active: false, // Will be activated after successful payment
-      });
+    // Create or update purchase record
+    let purchaseResult;
+    if (existingPurchase && existingPurchase.payment_status === "pending") {
+      // Update existing pending purchase
+      purchaseResult = await supabaseClient
+        .from("user_purchases")
+        .update({
+          purchase_amount: content.price,
+          currency: content.currency,
+          razorpay_order_id: order.id,
+          payment_status: "pending",
+          is_active: false,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existingPurchase.id);
+    } else {
+      // Create new purchase record
+      purchaseResult = await supabaseClient
+        .from("user_purchases")
+        .insert({
+          user_id: user.id,
+          content_id: contentId,
+          purchase_amount: content.price,
+          currency: content.currency,
+          razorpay_order_id: order.id,
+          payment_status: "pending",
+          is_active: false,
+        });
+    }
 
-    if (purchaseError) {
-      console.error("Error creating purchase record:", purchaseError);
+    if (purchaseResult.error) {
+      console.error("Error managing purchase record:", purchaseResult.error);
       throw new Error("Failed to create purchase record");
     }
 
