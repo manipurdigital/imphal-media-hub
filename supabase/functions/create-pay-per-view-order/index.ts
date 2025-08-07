@@ -53,22 +53,25 @@ serve(async (req) => {
     }
 
     // Check if user already has access to this content
-    const { data: existingPurchase } = await supabaseClient
+    const { data: existingPurchase, error: purchaseCheckError } = await supabaseClient
       .from("user_purchases")
       .select("*")
       .eq("user_id", user.id)
       .eq("content_id", contentId)
-      .single();
+      .maybeSingle(); // Use maybeSingle to avoid errors when no record exists
 
-    if (existingPurchase) {
-      if (existingPurchase.payment_status === "completed" && existingPurchase.is_active) {
-        return new Response(JSON.stringify({ 
-          error: "You already have access to this content" 
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        });
-      }
+    if (purchaseCheckError) {
+      console.error("Error checking existing purchase:", purchaseCheckError);
+      throw new Error("Failed to check existing purchase");
+    }
+
+    if (existingPurchase && existingPurchase.payment_status === "completed" && existingPurchase.is_active) {
+      return new Response(JSON.stringify({ 
+        error: "You already have access to this content" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
 
     // Get Razorpay credentials
@@ -119,8 +122,8 @@ serve(async (req) => {
 
     // Create or update purchase record
     let purchaseResult;
-    if (existingPurchase && existingPurchase.payment_status === "pending") {
-      // Update existing pending purchase
+    if (existingPurchase) {
+      // Update existing purchase (could be pending, failed, etc.)
       purchaseResult = await supabaseClient
         .from("user_purchases")
         .update({
@@ -131,7 +134,9 @@ serve(async (req) => {
           is_active: false,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", existingPurchase.id);
+        .eq("id", existingPurchase.id)
+        .select()
+        .single();
     } else {
       // Create new purchase record
       purchaseResult = await supabaseClient
@@ -144,7 +149,9 @@ serve(async (req) => {
           razorpay_order_id: order.id,
           payment_status: "pending",
           is_active: false,
-        });
+        })
+        .select()
+        .single();
     }
 
     if (purchaseResult.error) {
