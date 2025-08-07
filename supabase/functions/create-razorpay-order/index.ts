@@ -52,10 +52,17 @@ serve(async (req) => {
       throw new Error("Razorpay credentials not configured");
     }
 
+    // Generate a short receipt ID (max 40 chars for Razorpay)
+    const shortPlanId = plan.id.slice(-8); // Last 8 chars of plan ID
+    const shortTimestamp = Date.now().toString().slice(-8); // Last 8 digits of timestamp
+    const receipt = `${shortPlanId}_${shortTimestamp}`; // 17 chars total
+    
+    console.log(`Generated receipt: ${receipt} (length: ${receipt.length})`);
+
     const orderData: RazorpayOrderRequest = {
       amount: Math.round(plan.price * 100), // Convert to paise
       currency: plan.currency,
-      receipt: `plan_${plan.id}_${Date.now()}`,
+      receipt: receipt,
       notes: {
         plan_id: plan.id,
         plan_name: plan.name,
