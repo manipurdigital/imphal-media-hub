@@ -83,6 +83,66 @@ export type Database = {
         }
         Relationships: []
       }
+      pay_per_view_content: {
+        Row: {
+          created_at: string | null
+          currency: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          is_active: boolean | null
+          preview_url: string | null
+          price: number
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+          video_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          preview_url?: string | null
+          price: number
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+          video_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          preview_url?: string | null
+          price?: number
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+          video_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pay_per_view_content_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "video_engagement"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pay_per_view_content_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_feature_assignments: {
         Row: {
           created_at: string
@@ -193,6 +253,54 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      purchase_access_logs: {
+        Row: {
+          access_type: string | null
+          accessed_at: string | null
+          content_id: string | null
+          id: string
+          ip_address: unknown | null
+          purchase_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_type?: string | null
+          accessed_at?: string | null
+          content_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          purchase_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_type?: string | null
+          accessed_at?: string | null
+          content_id?: string | null
+          id?: string
+          ip_address?: unknown | null
+          purchase_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_access_logs_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "pay_per_view_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_access_logs_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "user_purchases"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       search_history: {
         Row: {
@@ -450,6 +558,65 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      user_purchases: {
+        Row: {
+          content_id: string | null
+          created_at: string | null
+          currency: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          payment_method: string | null
+          payment_status: string | null
+          purchase_amount: number
+          purchased_at: string | null
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          payment_method?: string | null
+          payment_status?: string | null
+          purchase_amount: number
+          purchased_at?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          payment_method?: string | null
+          payment_status?: string | null
+          purchase_amount?: number
+          purchased_at?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_purchases_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "pay_per_view_content"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -716,6 +883,7 @@ export type Database = {
           hosting_type: string | null
           id: string
           is_featured: boolean
+          is_premium: boolean | null
           language: string | null
           production_year: number | null
           rating: number | null
@@ -750,6 +918,7 @@ export type Database = {
           hosting_type?: string | null
           id?: string
           is_featured?: boolean
+          is_premium?: boolean | null
           language?: string | null
           production_year?: number | null
           rating?: number | null
@@ -784,6 +953,7 @@ export type Database = {
           hosting_type?: string | null
           id?: string
           is_featured?: boolean
+          is_premium?: boolean | null
           language?: string | null
           production_year?: number | null
           rating?: number | null
@@ -853,6 +1023,54 @@ export type Database = {
           },
         ]
       }
+      watch_history: {
+        Row: {
+          created_at: string | null
+          id: string
+          progress_percentage: number | null
+          updated_at: string | null
+          user_id: string
+          video_id: string
+          watch_duration: number | null
+          watched_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          progress_percentage?: number | null
+          updated_at?: string | null
+          user_id: string
+          video_id: string
+          watch_duration?: number | null
+          watched_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          progress_percentage?: number | null
+          updated_at?: string | null
+          user_id?: string
+          video_id?: string
+          watch_duration?: number | null
+          watched_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watch_history_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "video_engagement"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "watch_history_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       video_engagement: {
@@ -890,6 +1108,10 @@ export type Database = {
       }
     }
     Functions: {
+      check_pay_per_view_access: {
+        Args: { p_user_id: string; p_content_id: string }
+        Returns: boolean
+      }
       cleanup_expired_sessions: {
         Args: Record<PropertyKey, never>
         Returns: number
@@ -903,9 +1125,75 @@ export type Database = {
           message: string
         }[]
       }
+      get_pay_per_view_content_with_status: {
+        Args: { p_user_id?: string }
+        Returns: {
+          id: string
+          video_id: string
+          title: string
+          description: string
+          price: number
+          currency: string
+          duration_minutes: number
+          thumbnail_url: string
+          preview_url: string
+          is_purchased: boolean
+          purchase_status: string
+          purchased_at: string
+        }[]
+      }
+      get_premium_videos: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          title: string
+          description: string
+          genre: string
+          content_type: string
+          year: number
+          duration: number
+          rating: number
+          director: string
+          cast_members: string[]
+          video_url: string
+          thumbnail_url: string
+          is_premium: boolean
+        }[]
+      }
+      get_user_purchased_content: {
+        Args: { p_user_id: string }
+        Returns: {
+          content_id: string
+          video_id: string
+          title: string
+          description: string
+          price: number
+          currency: string
+          purchased_at: string
+          expires_at: string
+          payment_status: string
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      get_user_watch_history: {
+        Args: { p_user_id: string }
+        Returns: {
+          id: string
+          video_id: string
+          watched_at: string
+          watch_duration: number
+          progress_percentage: number
+          video_title: string
+          video_description: string
+          video_thumbnail_url: string
+          video_duration: number
+          video_year: number
+          video_rating: number
+          video_content_type: string
+        }[]
       }
       has_role: {
         Args: {
@@ -913,6 +1201,16 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
+      }
+      log_purchase_access: {
+        Args: {
+          p_user_id: string
+          p_content_id: string
+          p_access_type: string
+          p_ip_address?: unknown
+          p_user_agent?: string
+        }
+        Returns: string
       }
       promote_to_admin: {
         Args: { target_email: string }
