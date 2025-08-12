@@ -10,6 +10,7 @@ import ImoinuOriginalsSection from '@/components/ImoinuOriginalsSection';
 import TrendingSection from '@/components/TrendingSection';
 import RecentlyAddedSection from '@/components/RecentlyAddedSection';
 import TopRatedSection from '@/components/TopRatedSection';
+import PremiumPPVSection from '@/components/PremiumPPVSection';
 import movie1 from '@/assets/movie-1.jpg';
 import movie2 from '@/assets/movie-2.jpg';
 import movie3 from '@/assets/movie-3.jpg';
@@ -221,6 +222,7 @@ const Index = () => {
             <TrendingSection />
             <RecentlyAddedSection />
             <TopRatedSection />
+            <PremiumPPVSection />
             
             {/* Content by Type */}
             {movieVideos.length > 0 && (
