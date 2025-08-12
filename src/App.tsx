@@ -26,6 +26,7 @@ import TVShows from "./pages/TVShows";
 import MyList from "./pages/MyList";
 import Profile from "./pages/Profile";
 import Subscription from "./pages/Subscription";
+import Premium from "./pages/Premium";
 import Recommendations from "./pages/Recommendations";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/tv-shows" element={<TVShows />} />
             <Route path="/my-list" element={<MyList />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/premium" element={<Premium />} />
             <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
             <Route path="/recommendations" element={<ProtectedRoute><Recommendations /></ProtectedRoute>} />
             
