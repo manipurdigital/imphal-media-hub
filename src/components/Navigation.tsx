@@ -62,7 +62,7 @@ const Navigation: React.FC = () => {
           <NavLink to="/" text="Home" />
           <NavLink to="/movies" text="Movies" />
           <NavLink to="/tv-shows" text="TV Shows" />
-          <NavLink to="/premium" text="Premium" />
+          
           <NavLink to="/my-list" text="My List" />
           <NavLink to="/subscription" text="Subscription" />
           <NavLink to="/recommendations" text="For You" />
@@ -148,7 +148,7 @@ const Navigation: React.FC = () => {
                 <MobileNavLink to="/" text="Home" onClick={() => setIsMobileMenuOpen(false)} />
                 <MobileNavLink to="/movies" text="Movies" onClick={() => setIsMobileMenuOpen(false)} />
                 <MobileNavLink to="/tv-shows" text="TV Shows" onClick={() => setIsMobileMenuOpen(false)} />
-                <MobileNavLink to="/premium" text="Premium" onClick={() => setIsMobileMenuOpen(false)} />
+                
                 <MobileNavLink to="/my-list" text="My List" onClick={() => setIsMobileMenuOpen(false)} />
                 <MobileNavLink to="/subscription" text="Subscription" onClick={() => setIsMobileMenuOpen(false)} />
                 <MobileNavLink to="/recommendations" text="For You" onClick={() => setIsMobileMenuOpen(false)} />

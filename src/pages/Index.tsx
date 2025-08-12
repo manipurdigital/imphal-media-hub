@@ -176,7 +176,12 @@ const Index = () => {
       <SearchSection onSearch={handleSearch} />
 
       {/* Hero Section */}
-      {!showSearch && <HeroSection />}
+      {!showSearch && (
+        <>
+          <HeroSection />
+          <PremiumPPVSection />
+        </>
+      )}
 
       {/* Search Results Info */}
       {showSearch && (
@@ -222,7 +227,6 @@ const Index = () => {
             <TrendingSection />
             <RecentlyAddedSection />
             <TopRatedSection />
-            <PremiumPPVSection />
             
             {/* Content by Type */}
             {movieVideos.length > 0 && (
