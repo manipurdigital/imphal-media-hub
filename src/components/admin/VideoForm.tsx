@@ -45,6 +45,8 @@ const videoFormSchema = z.object({
   bitrate: z.number().optional(),
   is_default: z.boolean().optional(),
   is_featured: z.boolean().optional(),
+  is_pay_per_view: z.boolean().optional(),
+  ppv_price: z.number().min(0).optional(),
 });
 
 type VideoFormData = z.infer<typeof videoFormSchema>;
@@ -100,6 +102,8 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
       bitrate: undefined,
       is_default: true,
       is_featured: video?.is_featured || false,
+      is_pay_per_view: false,
+      ppv_price: undefined,
     },
   });
 
@@ -223,6 +227,29 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
 
           if (unfeaturedError) throw unfeaturedError;
         }
+      }
+
+      // Handle pay-per-view logic
+      if (videoId && data.is_pay_per_view && data.ppv_price) {
+        const ppvData = {
+          video_id: videoId,
+          title: data.title,
+          description: data.description || 'Premium content',
+          price: data.ppv_price,
+          currency: 'INR',
+          duration_minutes: data.duration || 120,
+          thumbnail_url: thumbnailUrl || '/placeholder.svg',
+          is_active: true
+        };
+
+        const { error: ppvError } = await supabase
+          .from('pay_per_view_content')
+          .upsert(ppvData, { 
+            onConflict: 'video_id',
+            ignoreDuplicates: false 
+          });
+
+        if (ppvError) throw ppvError;
       }
 
       onSuccess();
@@ -736,6 +763,60 @@ export const VideoForm = ({ video, onSuccess, onCancel }: VideoFormProps) => {
                   </FormItem>
                 )}
               />
+            </div>
+
+            {/* Pay Per View Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Pay Per View Settings</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="is_pay_per_view"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col justify-center">
+                      <div className="flex items-center space-x-2">
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="flex items-center gap-2">
+                          💰 Pay Per View
+                        </FormLabel>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Enable pay-per-view access for this video
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch('is_pay_per_view') && (
+                  <FormField
+                    control={form.control}
+                    name="ppv_price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Price (INR)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            step="0.01"
+                            min="0"
+                            placeholder="99.00"
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
             </div>
 
             {/* Action Buttons */}
