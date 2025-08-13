@@ -1,0 +1,1 @@
+SELECT promote_to_admin('manipurdigital2025@gmail.com');

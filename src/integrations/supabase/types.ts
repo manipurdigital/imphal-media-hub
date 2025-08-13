@@ -1112,6 +1112,13 @@ export type Database = {
         Args: { p_user_id: string; p_content_id: string }
         Returns: boolean
       }
+      check_user_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
       cleanup_expired_sessions: {
         Args: Record<PropertyKey, never>
         Returns: number
