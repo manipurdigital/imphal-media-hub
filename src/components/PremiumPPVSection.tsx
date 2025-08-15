@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Loader2, Sparkles } from 'lucide-react';
+import { useDirectPayment } from '@/hooks/useDirectPayment';
 
 interface PayPerViewItem {
   id: string;
@@ -16,6 +17,7 @@ interface PayPerViewItem {
 }
 
 const PremiumPPVSection = () => {
+  const { initiateDirectPayment, processingPayment } = useDirectPayment();
   const [items, setItems] = useState<PayPerViewItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,6 +38,21 @@ const PremiumPPVSection = () => {
     };
     load();
   }, []);
+
+  const handlePayPerViewClick = async (item: PayPerViewItem, e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    // Check if user already has access to this content
+    const itemWithStatus = item as PayPerViewItem & { is_purchased?: boolean };
+    if (itemWithStatus.is_purchased) {
+      // User already has access, redirect to premium page to watch
+      window.location.href = '/premium';
+      return;
+    }
+    
+    // Initiate direct payment
+    await initiateDirectPayment(item.id, item.title);
+  };
 
   const formatPrice = (price: number, currency: string) =>
     new Intl.NumberFormat('en-IN', { style: 'currency', currency }).format(price);
@@ -69,8 +86,17 @@ const PremiumPPVSection = () => {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {items.map((item) => (
-            <Link key={item.id} to="/premium" aria-label={`Open ${item.title} in premium page`}>
-              <Card className="group overflow-hidden border-border/60">
+            <div 
+              key={item.id} 
+              onClick={(e) => handlePayPerViewClick(item, e)}
+              className="cursor-pointer"
+            >
+                <Card className="group overflow-hidden border-border/60 relative">
+                  {processingPayment === item.id && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+                      <Loader2 className="h-6 w-6 animate-spin text-white" />
+                    </div>
+                  )}
                 <div className="relative aspect-[16/9] overflow-hidden">
                   {item.thumbnail_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -95,8 +121,8 @@ const PremiumPPVSection = () => {
                     {item.description || 'Premium content'}
                   </p>
                 </CardContent>
-              </Card>
-            </Link>
+                </Card>
+            </div>
           ))}
         </div>
       </div>
