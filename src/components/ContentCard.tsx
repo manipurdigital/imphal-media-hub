@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Play, Plus, ThumbsUp, ChevronDown } from 'lucide-react';
 import VideoPlayer from './VideoPlayer';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 
 interface ContentCardProps {
   id: string;
@@ -39,14 +42,33 @@ const ContentCard: React.FC<ContentCardProps> = ({
   categories = [],
   trailerUrl
 }) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { checkSubscription } = useSubscriptionStatus();
   const [isLoading, setIsLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
 
-  const handleClick = () => {
-    if (videoUrl) {
-      setShowPlayer(true);
+  const handleClick = async () => {
+    if (!videoUrl) return;
+    
+    // If user is not signed in, redirect to signup
+    if (!user) {
+      navigate('/auth?tab=signup');
+      return;
     }
+    
+    // Check subscription status for signed-in users
+    const hasActiveSubscription = await checkSubscription();
+    
+    if (!hasActiveSubscription) {
+      // Redirect to subscription page if no active subscription
+      navigate('/subscription');
+      return;
+    }
+    
+    // User has active subscription, play the video
+    setShowPlayer(true);
   };
 
   return (
