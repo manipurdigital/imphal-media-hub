@@ -4,6 +4,8 @@ import Navigation from '@/components/Navigation';
 import HeroSection from '@/components/HeroSection';
 import ContentCarousel from '@/components/ContentCarousel';
 import SearchSection from '@/components/SearchSection';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import { useVideoSearch, VideoSearchResult } from '@/hooks/useVideoSearch';
 import { useCollections } from '@/hooks/useCollections';
 import { useCategories } from '@/hooks/useCategories';
@@ -41,6 +43,8 @@ interface ContentItem {
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { checkSubscription } = useSubscriptionStatus();
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { 
@@ -169,10 +173,29 @@ const Index = () => {
     );
   }
 
+  const handlePageClick = async () => {
+    // If user is not signed in, redirect to signup
+    if (!user) {
+      navigate('/auth?tab=signup');
+      return;
+    }
+    
+    // If user is signed in, check subscription status
+    const hasActiveSubscription = await checkSubscription();
+    
+    if (!hasActiveSubscription) {
+      // Redirect to subscription page if no active subscription
+      navigate('/subscription');
+      return;
+    }
+    
+    // User has active subscription, no redirect needed
+  };
+
   return (
     <div 
       className="min-h-screen bg-background cursor-pointer" 
-      onClick={() => navigate('/auth?tab=signup')}
+      onClick={handlePageClick}
     >
       {/* Navigation */}
       <Navigation />
