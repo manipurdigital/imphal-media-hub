@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import HeroSection from '@/components/HeroSection';
 import ContentCarousel from '@/components/ContentCarousel';
@@ -39,6 +40,7 @@ interface ContentItem {
 }
 
 const Index = () => {
+  const navigate = useNavigate();
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { 
@@ -168,7 +170,10 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div 
+      className="min-h-screen bg-background cursor-pointer" 
+      onClick={() => navigate('/auth?tab=signup')}
+    >
       {/* Navigation */}
       <Navigation />
 
