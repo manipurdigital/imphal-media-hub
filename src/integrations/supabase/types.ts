@@ -130,14 +130,14 @@ export type Database = {
           {
             foreignKeyName: "pay_per_view_content_video_id_fkey"
             columns: ["video_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "video_engagement"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "pay_per_view_content_video_id_fkey"
             columns: ["video_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "videos"
             referencedColumns: ["id"]
           },
