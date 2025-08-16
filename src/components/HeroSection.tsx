@@ -26,9 +26,9 @@ const HeroSection: React.FC = () => {
     },
   });
 
-  // Auto-slide functionality
+  // Auto-slide functionality - paused when video player is open
   useEffect(() => {
-    if (featuredVideos.length <= 1) return;
+    if (featuredVideos.length <= 1 || showPlayer) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => 
@@ -37,7 +37,7 @@ const HeroSection: React.FC = () => {
     }, 8000); // Change slide every 8 seconds
 
     return () => clearInterval(interval);
-  }, [featuredVideos.length]);
+  }, [featuredVideos.length, showPlayer]);
 
   // Navigation functions
   const goToSlide = (index: number) => {
