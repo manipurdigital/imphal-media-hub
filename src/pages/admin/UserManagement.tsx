@@ -14,13 +14,7 @@ export const UserManagement = () => {
   const { data: users, isLoading } = useQuery({
     queryKey: ['adminUsers'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          *,
-          user_roles (role)
-        `)
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.rpc('get_all_users_for_admin');
 
       if (error) throw error;
       return data;
@@ -88,7 +82,8 @@ export const UserManagement = () => {
 
       <div className="grid gap-4">
         {users?.map((user) => {
-          const role = (user.user_roles as any)?.[0]?.role || 'user';
+          const userRoles = user.user_roles as any[];
+          const role = userRoles?.[0]?.role || 'user';
           
           return (
             <Card key={user.id}>
