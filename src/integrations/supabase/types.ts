@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -487,6 +487,39 @@ export type Database = {
           id?: string
           name?: string
           slug?: string
+        }
+        Relationships: []
+      }
+      user_devices: {
+        Row: {
+          created_at: string | null
+          device_id: string
+          device_name: string | null
+          id: string
+          ip_address: unknown | null
+          last_active: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          device_id: string
+          device_name?: string | null
+          id?: string
+          ip_address?: unknown | null
+          last_active?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          device_id?: string
+          device_name?: string | null
+          id?: string
+          ip_address?: unknown | null
+          last_active?: string | null
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1108,21 +1141,25 @@ export type Database = {
       }
     }
     Functions: {
+      can_user_add_device: {
+        Args: { user_uuid: string }
+        Returns: boolean
+      }
       check_pay_per_view_access: {
-        Args: { p_user_id: string; p_content_id: string }
+        Args: { p_content_id: string; p_user_id: string }
         Returns: boolean
       }
       check_user_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
       check_user_role_secure: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
@@ -1130,62 +1167,84 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      cleanup_old_devices: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       fix_video_sources_consistency: {
         Args: Record<PropertyKey, never>
         Returns: {
           action: string
+          message: string
           video_id: string
           video_title: string
-          message: string
+        }[]
+      }
+      get_all_users_for_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avatar_url: string
+          created_at: string
+          full_name: string
+          id: string
+          role: string
+          updated_at: string
+          user_id: string
+          user_roles: Json
+          username: string
         }[]
       }
       get_pay_per_view_content_with_status: {
         Args: { p_user_id?: string }
         Returns: {
-          id: string
-          video_id: string
-          title: string
-          description: string
-          price: number
           currency: string
+          description: string
           duration_minutes: number
-          thumbnail_url: string
-          preview_url: string
+          id: string
           is_purchased: boolean
+          preview_url: string
+          price: number
           purchase_status: string
           purchased_at: string
+          thumbnail_url: string
+          title: string
+          video_id: string
         }[]
       }
       get_premium_videos: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
-          title: string
-          description: string
-          genre: string
-          content_type: string
-          year: number
-          duration: number
-          rating: number
-          director: string
           cast_members: string[]
-          video_url: string
-          thumbnail_url: string
+          content_type: string
+          description: string
+          director: string
+          duration: number
+          genre: string
+          id: string
           is_premium: boolean
+          rating: number
+          thumbnail_url: string
+          title: string
+          video_url: string
+          year: number
         }[]
+      }
+      get_user_device_count: {
+        Args: { user_uuid: string }
+        Returns: number
       }
       get_user_purchased_content: {
         Args: { p_user_id: string }
         Returns: {
           content_id: string
-          video_id: string
-          title: string
-          description: string
-          price: number
           currency: string
-          purchased_at: string
+          description: string
           expires_at: string
           payment_status: string
+          price: number
+          purchased_at: string
+          title: string
+          video_id: string
         }[]
       }
       get_user_role: {
@@ -1196,33 +1255,33 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: {
           id: string
-          video_id: string
-          watched_at: string
-          watch_duration: number
           progress_percentage: number
-          video_title: string
-          video_description: string
-          video_thumbnail_url: string
-          video_duration: number
-          video_year: number
-          video_rating: number
           video_content_type: string
+          video_description: string
+          video_duration: number
+          video_id: string
+          video_rating: number
+          video_thumbnail_url: string
+          video_title: string
+          video_year: number
+          watch_duration: number
+          watched_at: string
         }[]
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
       log_purchase_access: {
         Args: {
-          p_user_id: string
-          p_content_id: string
           p_access_type: string
+          p_content_id: string
           p_ip_address?: unknown
           p_user_agent?: string
+          p_user_id: string
         }
         Returns: string
       }
@@ -1242,11 +1301,11 @@ export type Database = {
         Returns: undefined
       }
       set_user_role: {
-        Args: { target_user: string; new_role: string }
+        Args: { new_role: string; target_user: string }
         Returns: undefined
       }
       terminate_other_sessions: {
-        Args: { _user_id: string; _current_session_token: string }
+        Args: { _current_session_token: string; _user_id: string }
         Returns: number
       }
       unset_featured_video: {
@@ -1256,11 +1315,11 @@ export type Database = {
       validate_video_url_accessibility: {
         Args: Record<PropertyKey, never>
         Returns: {
+          hosting_type: string
+          needs_check: boolean
           video_id: string
           video_title: string
           video_url: string
-          hosting_type: string
-          needs_check: boolean
         }[]
       }
     }
