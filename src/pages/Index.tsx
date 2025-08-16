@@ -5,6 +5,7 @@ import HeroSection from '@/components/HeroSection';
 import ContentCarousel from '@/components/ContentCarousel';
 import SearchSection from '@/components/SearchSection';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import { useVideoSearch, VideoSearchResult } from '@/hooks/useVideoSearch';
 import { useCollections } from '@/hooks/useCollections';
@@ -44,6 +45,7 @@ interface ContentItem {
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { data: userRole } = useUserRole();
   const { checkSubscription } = useSubscriptionStatus();
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -180,7 +182,12 @@ const Index = () => {
       return;
     }
     
-    // If user is signed in, check subscription status
+    // If user is admin, skip subscription check
+    if (userRole === 'admin') {
+      return;
+    }
+    
+    // If user is signed in (non-admin), check subscription status
     const hasActiveSubscription = await checkSubscription();
     
     if (!hasActiveSubscription) {
