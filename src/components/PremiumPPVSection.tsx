@@ -41,6 +41,7 @@ const PremiumPPVSection = () => {
 
   const handlePayPerViewClick = async (item: PayPerViewItem, e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent event bubbling to parent click handlers
     
     // Check if user already has access to this content
     const itemWithStatus = item as PayPerViewItem & { is_purchased?: boolean };
