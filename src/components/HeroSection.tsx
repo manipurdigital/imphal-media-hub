@@ -3,11 +3,15 @@ import { Play, Info, ChevronLeft, ChevronRight } from 'lucide-react';
 import VideoPlayer from './VideoPlayer';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import heroImage from '@/assets/hero-featured.jpg';
 
 const HeroSection: React.FC = () => {
   const [showPlayer, setShowPlayer] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Fetch all featured videos
   const { data: featuredVideos = [] } = useQuery({
@@ -69,6 +73,17 @@ const HeroSection: React.FC = () => {
   };
 
   const backgroundImage = currentVideo?.thumbnail_url || heroImage;
+
+  // Handle play button click with authentication check
+  const handlePlayClick = () => {
+    if (!user) {
+      // Not authenticated, redirect to auth page
+      navigate('/auth');
+    } else {
+      // Authenticated, redirect to subscription page
+      navigate('/subscription');
+    }
+  };
 
   return (
     <section className="relative h-screen flex items-center justify-start bg-black overflow-hidden">
@@ -147,7 +162,7 @@ const HeroSection: React.FC = () => {
         <div className="flex items-center space-x-4">
           <button 
             className="btn-netflix-play text-lg px-8 py-3"
-            onClick={() => setShowPlayer(true)}
+            onClick={handlePlayClick}
           >
             <Play className="w-7 h-7" fill="currentColor" />
             Play
