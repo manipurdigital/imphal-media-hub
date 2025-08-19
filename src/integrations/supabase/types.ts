@@ -141,6 +141,13 @@ export type Database = {
             referencedRelation: "videos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "pay_per_view_content_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: true
+            referencedRelation: "videos_browse"
+            referencedColumns: ["id"]
+          },
         ]
       }
       plan_feature_assignments: {
@@ -340,6 +347,13 @@ export type Database = {
             columns: ["clicked_video_id"]
             isOneToOne: false
             referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "search_history_clicked_video_id_fkey"
+            columns: ["clicked_video_id"]
+            isOneToOne: false
+            referencedRelation: "videos_browse"
             referencedColumns: ["id"]
           },
         ]
@@ -557,6 +571,13 @@ export type Database = {
             referencedRelation: "videos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_favorites_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos_browse"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_preferences: {
@@ -752,6 +773,13 @@ export type Database = {
             referencedRelation: "videos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "video_categories_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos_browse"
+            referencedColumns: ["id"]
+          },
         ]
       }
       video_collections: {
@@ -796,6 +824,13 @@ export type Database = {
             columns: ["video_id"]
             isOneToOne: false
             referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_collections_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos_browse"
             referencedColumns: ["id"]
           },
         ]
@@ -852,6 +887,13 @@ export type Database = {
             referencedRelation: "videos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "video_sources_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos_browse"
+            referencedColumns: ["id"]
+          },
         ]
       }
       video_tags: {
@@ -893,6 +935,13 @@ export type Database = {
             columns: ["video_id"]
             isOneToOne: false
             referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_tags_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos_browse"
             referencedColumns: ["id"]
           },
         ]
@@ -1054,6 +1103,13 @@ export type Database = {
             referencedRelation: "videos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "viewing_history_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos_browse"
+            referencedColumns: ["id"]
+          },
         ]
       }
       watch_history: {
@@ -1102,6 +1158,13 @@ export type Database = {
             referencedRelation: "videos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "watch_history_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos_browse"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -1136,6 +1199,69 @@ export type Database = {
           title?: string | null
           view_count?: number | null
           watch_time?: number | null
+        }
+        Relationships: []
+      }
+      videos_browse: {
+        Row: {
+          can_watch: boolean | null
+          cast_members: string[] | null
+          content_status: Database["public"]["Enums"]["content_status"] | null
+          content_type: Database["public"]["Enums"]["content_type"] | null
+          created_at: string | null
+          description: string | null
+          director: string | null
+          duration: number | null
+          genre: string | null
+          id: string | null
+          is_premium: boolean | null
+          rating: number | null
+          thumbnail_url: string | null
+          title: string | null
+          trailer_url: string | null
+          video_url: string | null
+          view_count: number | null
+          year: number | null
+        }
+        Insert: {
+          can_watch?: never
+          cast_members?: string[] | null
+          content_status?: Database["public"]["Enums"]["content_status"] | null
+          content_type?: Database["public"]["Enums"]["content_type"] | null
+          created_at?: string | null
+          description?: string | null
+          director?: string | null
+          duration?: number | null
+          genre?: string | null
+          id?: string | null
+          is_premium?: boolean | null
+          rating?: number | null
+          thumbnail_url?: string | null
+          title?: string | null
+          trailer_url?: string | null
+          video_url?: never
+          view_count?: number | null
+          year?: number | null
+        }
+        Update: {
+          can_watch?: never
+          cast_members?: string[] | null
+          content_status?: Database["public"]["Enums"]["content_status"] | null
+          content_type?: Database["public"]["Enums"]["content_type"] | null
+          created_at?: string | null
+          description?: string | null
+          director?: string | null
+          duration?: number | null
+          genre?: string | null
+          id?: string | null
+          is_premium?: boolean | null
+          rating?: number | null
+          thumbnail_url?: string | null
+          title?: string | null
+          trailer_url?: string | null
+          video_url?: never
+          view_count?: number | null
+          year?: number | null
         }
         Relationships: []
       }
@@ -1266,6 +1392,29 @@ export type Database = {
           video_year: number
           watch_duration: number
           watched_at: string
+        }[]
+      }
+      get_video_with_access_control: {
+        Args: { video_uuid: string }
+        Returns: {
+          can_watch: boolean
+          cast_members: string[]
+          content_status: Database["public"]["Enums"]["content_status"]
+          content_type: Database["public"]["Enums"]["content_type"]
+          created_at: string
+          description: string
+          director: string
+          duration: number
+          genre: string
+          id: string
+          is_premium: boolean
+          rating: number
+          thumbnail_url: string
+          title: string
+          trailer_url: string
+          video_url: string
+          view_count: number
+          year: number
         }[]
       }
       has_active_subscription: {

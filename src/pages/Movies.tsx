@@ -43,7 +43,7 @@ const Movies = () => {
   const fetchMovies = async () => {
     try {
       const { data, error } = await supabase
-        .from('videos')
+        .from('videos_browse')
         .select(`
           *,
           categories:video_categories!inner(

@@ -39,7 +39,7 @@ const TrendingSection = () => {
     const fetchTrendingContent = async () => {
       try {
         const { data, error } = await supabase
-          .from('videos')
+          .from('videos_browse')
           .select(`
             *,
             video_categories(
@@ -58,7 +58,7 @@ const TrendingSection = () => {
           title: video.title,
           image: video.thumbnail_url || '/api/placeholder/400/600',
           rating: video.rating || 0,
-          year: video.year || video.production_year || 2024,
+          year: video.year || 2024,
           genre: video.genre,
           duration: formatDuration(video.duration),
           description: video.description || '',

@@ -19,7 +19,7 @@ const HeroSection: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('videos')
-        .select('*')
+        .select('id, title, description, video_url, thumbnail_url, year, rating, content_type, is_featured')
         .eq('is_featured', true)
         .eq('content_status', 'published')
         .is('deleted_at', null)

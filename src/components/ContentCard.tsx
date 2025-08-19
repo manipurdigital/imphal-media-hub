@@ -48,26 +48,30 @@ const ContentCard: React.FC<ContentCardProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
+  const [canWatch, setCanWatch] = useState(false);
 
   const handleClick = async () => {
-    if (!videoUrl) return;
-    
-    // If user is not signed in, redirect to signup
-    if (!user) {
-      navigate('/auth?tab=signup');
+    // Always check if user can watch this specific video
+    if (!videoUrl) {
+      // No video URL means this is a non-subscriber trying to watch
+      if (!user) {
+        navigate('/auth?tab=signup');
+        return;
+      }
+      
+      // User is signed in but can't watch - check subscription
+      const hasActiveSubscription = await checkSubscription();
+      if (!hasActiveSubscription) {
+        navigate('/subscription');
+        return;
+      }
+      
+      // Show subscription required message
+      alert('This video requires an active subscription to watch.');
       return;
     }
     
-    // Check subscription status for signed-in users
-    const hasActiveSubscription = await checkSubscription();
-    
-    if (!hasActiveSubscription) {
-      // Redirect to subscription page if no active subscription
-      navigate('/subscription');
-      return;
-    }
-    
-    // User has active subscription, play the video
+    // Video URL is available, user can watch
     setShowPlayer(true);
   };
 
@@ -121,14 +125,20 @@ const ContentCard: React.FC<ContentCardProps> = ({
             </div>
           )}
           
-          {/* Hover Overlay with Netflix-style controls */}
+          {/* Hover Overlay with play button - show lock if can't watch */}
           <div className="content-card-overlay">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <button className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors">
-                  <svg className="w-5 h-5 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z"/>
-                  </svg>
+                <button className={`w-10 h-10 ${videoUrl ? 'bg-white' : 'bg-gray-500'} rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors`}>
+                  {videoUrl ? (
+                    <svg className="w-5 h-5 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z"/>
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M18 8a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8zM9 9h6v6H9V9zm1 7a1 1 0 0 1-1-1v-2a1 1 0 0 1 2 0v2a1 1 0 0 1-1 1z"/>
+                    </svg>
+                  )}
                 </button>
                 <button className="w-10 h-10 border-2 border-white rounded-full flex items-center justify-center hover:bg-white/20 transition-colors">
                   <Plus className="w-5 h-5 text-white" />
@@ -143,7 +153,11 @@ const ContentCard: React.FC<ContentCardProps> = ({
             </div>
             <div className="mt-3">
               <div className="flex items-center space-x-2 text-sm text-gray-300 mb-2">
-                <span className="text-green-400 font-semibold">98% Match</span>
+                {videoUrl ? (
+                  <span className="text-green-400 font-semibold">98% Match</span>
+                ) : (
+                  <span className="text-red-400 font-semibold">🔒 Subscription Required</span>
+                )}
                 <span className="border border-white/40 px-1 py-0.5 text-xs">TV-MA</span>
                 <span>{year}</span>
               </div>
