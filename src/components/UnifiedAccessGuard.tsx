@@ -9,7 +9,7 @@ interface UnifiedAccessGuardProps {
 
 const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => {
   const { user } = useAuth();
-  const { isSubscribed, checkSubscription } = useSubscriptionStatus();
+  const { isSubscribed, checkSubscription, loading } = useSubscriptionStatus();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -26,9 +26,11 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
       return;
     }
 
-    // 2. Non-authenticated users - redirect to auth (except public paths)
+    // 2. Non-authenticated users - on home page redirect to auth
     if (!user) {
-      navigate('/auth?tab=signin', { replace: true });
+      if (currentPath === '/') {
+        navigate('/auth?tab=signin', { replace: true });
+      }
       return;
     }
 
@@ -89,7 +91,7 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
       }
 
       // Rule 2: Authenticated users without subscription (except exempt interactions)
-      if (user && !isSubscribed) {
+      if (user) {
         // Check if this is an exempt interaction (profile, sign out)
         const isExemptElement = target.closest('[data-exempt="true"]') ||
                                target.closest('.profile-link') ||
@@ -97,7 +99,8 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
                                target.closest('a[href*="/profile"]') ||
                                target.closest('button[data-action="signout"]');
 
-        if (!isExemptElement && !authenticatedExemptPaths.some(path => location.pathname.startsWith(path))) {
+        const hasSubscription = typeof isSubscribed === 'boolean' ? isSubscribed : await checkSubscription();
+        if (!hasSubscription && !isExemptElement && !authenticatedExemptPaths.some(path => location.pathname.startsWith(path))) {
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
@@ -146,7 +149,7 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
     }
 
     // Show overlay for authenticated users without subscription (except exempt paths)
-    if (user && !isSubscribed && !authenticatedExemptPaths.some(path => currentPath.startsWith(path))) {
+    if (user && isSubscribed === false && !loading && !authenticatedExemptPaths.some(path => currentPath.startsWith(path))) {
       return {
         show: true,
         message: '🔐 Subscribe to unlock content',

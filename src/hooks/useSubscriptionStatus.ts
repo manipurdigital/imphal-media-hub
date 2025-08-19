@@ -20,7 +20,7 @@ export interface SubscriptionData {
 }
 
 export const useSubscriptionStatus = () => {
-  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const { user } = useAuth();
