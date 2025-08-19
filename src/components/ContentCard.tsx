@@ -83,7 +83,11 @@ const ContentCard: React.FC<ContentCardProps> = ({
           }
         }}
         aria-label={`Play ${title}`}
+        data-ppv={isPPV || isPremium ? "true" : "false"}
         data-content-type={isPPV ? 'ppv' : isPremium ? 'premium' : 'regular'}
+        data-title={title}
+        data-price={isPPV || isPremium ? (price || 99) : undefined}
+        data-id={id}
       >
         {/* Loading State */}
         {isLoading && (

@@ -93,10 +93,11 @@ const Navigation: React.FC = () => {
                    align="end" 
                    className="w-56 bg-black/95 border border-white/20 text-white backdrop-blur-md"
                  >
-                   <DropdownMenuItem 
-                     onClick={() => navigate('/profile')}
-                     className="hover:bg-white/10 cursor-pointer focus:bg-white/10"
-                   >
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/profile')}
+                      className="hover:bg-white/10 cursor-pointer focus:bg-white/10"
+                      data-exempt="true"
+                    >
                      <User className="mr-2 h-4 w-4" />
                      Account
                    </DropdownMenuItem>
@@ -110,10 +111,12 @@ const Navigation: React.FC = () => {
                      </DropdownMenuItem>
                    )}
                    <DropdownMenuSeparator className="bg-white/20" />
-                   <DropdownMenuItem 
-                     onClick={handleSignOut}
-                     className="hover:bg-white/10 cursor-pointer focus:bg-white/10"
-                   >
+                    <DropdownMenuItem 
+                      onClick={handleSignOut}
+                      className="hover:bg-white/10 cursor-pointer focus:bg-white/10"
+                      data-exempt="true"
+                      data-action="signout"
+                    >
                      <LogOut className="mr-2 h-4 w-4" />
                       Sign out of Imoinu
                    </DropdownMenuItem>
@@ -156,17 +159,19 @@ const Navigation: React.FC = () => {
                  {user && (
                    <>
                      <hr className="border-white/20" />
-                     <MobileNavLink to="/profile" text="Account" onClick={() => setIsMobileMenuOpen(false)} />
+                     <MobileNavLink to="/profile" text="Account" onClick={() => setIsMobileMenuOpen(false)} dataExempt={true} />
                      {userRole === 'admin' && (
                        <MobileNavLink to="/admin" text="Admin Panel" onClick={() => setIsMobileMenuOpen(false)} />
                      )}
-                     <button
-                       onClick={() => {
-                         handleSignOut();
-                         setIsMobileMenuOpen(false);
-                       }}
-                       className="text-left text-white hover:text-white/80 transition-colors"
-                     >
+                      <button
+                        onClick={() => {
+                          handleSignOut();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="text-left text-white hover:text-white/80 transition-colors"
+                        data-exempt="true"
+                        data-action="signout"
+                      >
                        Sign out of Imoinu
                      </button>
                    </>
@@ -196,10 +201,11 @@ const NavLink: React.FC<{ to: string; text: string }> = ({ to, text }) => {
   );
 };
 
-const MobileNavLink: React.FC<{ to: string; text: string; onClick: () => void }> = ({ 
+const MobileNavLink: React.FC<{ to: string; text: string; onClick: () => void; dataExempt?: boolean }> = ({ 
   to, 
   text, 
-  onClick 
+  onClick,
+  dataExempt = false
 }) => {
   const location = useLocation();
   const isActive = location.pathname === to;
@@ -211,6 +217,7 @@ const MobileNavLink: React.FC<{ to: string; text: string; onClick: () => void }>
       className={`text-lg font-medium transition-colors duration-200 ${
         isActive ? 'text-white' : 'text-white/80 hover:text-white'
       }`}
+      data-exempt={dataExempt ? "true" : undefined}
     >
       {text}
     </Link>
