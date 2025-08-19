@@ -50,7 +50,7 @@ const Navigation: React.FC = () => {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 netflix-nav ${isScrolled ? 'scrolled' : ''} px-16 py-4`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 netflix-nav ${isScrolled ? 'scrolled' : ''} px-4 sm:px-8 lg:px-16 py-4`}>
       <div className="flex items-center justify-between w-full">
         {/* Logo */}
         <Link to="/" className="text-red-600 text-2xl font-bold tracking-tight hover:text-red-500 transition-colors">

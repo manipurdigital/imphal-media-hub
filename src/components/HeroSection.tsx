@@ -136,16 +136,16 @@ const HeroSection: React.FC = () => {
       )}
       
       {/* Content */}
-      <div className="relative z-10 max-w-2xl mx-16 text-white pt-20">
-        <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-none transition-all duration-500">
+      <div className="relative z-10 max-w-2xl mx-4 sm:mx-8 lg:mx-16 text-white pt-20">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-tight md:leading-none transition-all duration-500">
           {currentVideo.title}
         </h1>
-        <p className="text-xl md:text-2xl mb-8 text-white/90 leading-relaxed max-w-lg transition-all duration-500">
+        <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 text-white/90 leading-relaxed max-w-sm sm:max-w-md lg:max-w-lg transition-all duration-500">
           {currentVideo.description}
         </p>
         
         {/* Metadata */}
-        <div className="flex items-center space-x-4 mb-10 text-lg">
+        <div className="flex items-center space-x-2 sm:space-x-4 mb-6 sm:mb-10 text-sm sm:text-base lg:text-lg flex-wrap gap-y-2">
           {currentVideo?.rating && (
             <span className="text-green-400 font-semibold">{Math.round(currentVideo.rating * 10)}% Match</span>
           )}
@@ -159,18 +159,18 @@ const HeroSection: React.FC = () => {
         </div>
         
         {/* Action Buttons */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3 sm:space-x-4 flex-wrap gap-y-3">
           <button 
-            className="btn-netflix-play text-lg px-8 py-3"
+            className="btn-netflix-play text-sm sm:text-base lg:text-lg px-4 sm:px-6 lg:px-8 py-2 sm:py-3"
             onClick={handlePlayClick}
           >
-            <Play className="w-7 h-7" fill="currentColor" />
+            <Play className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" fill="currentColor" />
             Play
           </button>
           <button 
-            className="btn-netflix-info text-lg px-8 py-3"
+            className="btn-netflix-info text-sm sm:text-base lg:text-lg px-4 sm:px-6 lg:px-8 py-2 sm:py-3"
           >
-            <Info className="w-7 h-7" />
+            <Info className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
             More Info
           </button>
         </div>

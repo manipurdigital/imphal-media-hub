@@ -220,8 +220,8 @@ const Index = () => {
 
       {/* Search Results Info */}
       {showSearch && (
-        <div className="px-4 sm:px-6 lg:px-8 py-4">
-          <div className="max-w-7xl mx-auto flex items-center gap-2">
+        <div className="px-4 sm:px-6 lg:px-8 py-4 pt-20 sm:pt-24">
+          <div className="max-w-7xl mx-auto flex items-center gap-2 flex-wrap">
             <button 
               onClick={handleBackToHome}
               className="text-primary hover:text-primary/80 text-sm font-medium"
