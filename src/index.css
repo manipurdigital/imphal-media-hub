@@ -262,6 +262,25 @@
     margin: 4px;
   }
 
+  .content-card:hover {
+    transform: scale(1.05) translateY(-8px);
+    box-shadow: var(--elevated-shadow);
+    z-index: 20;
+  }
+
+  .content-card:hover .content-card-image {
+    transform: scale(1.02);
+    filter: brightness(1.1) contrast(1.05);
+  }
+
+  .content-card:hover .content-card-overlay {
+    transform: translateY(0);
+  }
+
+  .content-card:hover .content-card-info {
+    box-shadow: 0 4px 20px hsl(216 28% 4% / 0.4);
+  }
+
   .content-card::before {
     content: '';
     position: absolute;
