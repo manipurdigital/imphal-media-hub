@@ -47,7 +47,6 @@ const RecentlyAddedSection = () => {
             )
           `)
           .eq('content_status', 'published')
-          .is('deleted_at', null)
           .order('created_at', { ascending: false })
           .limit(10);
 

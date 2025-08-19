@@ -51,8 +51,7 @@ const Movies = () => {
           )
         `)
         .eq('content_type', 'movie')
-        .eq('content_status', 'published')
-        .is('deleted_at', null);
+        .eq('content_status', 'published');
 
       if (error) throw error;
 

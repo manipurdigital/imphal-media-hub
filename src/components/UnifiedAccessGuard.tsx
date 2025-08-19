@@ -42,6 +42,7 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
     // 4. Authenticated users without subscription - redirect to subscribe
     const hasSubscription = await checkSubscription();
     if (!hasSubscription) {
+      console.warn('[UnifiedAccessGuard] Route redirect to /subscribe', { path: currentPath, hasSubscription });
       navigate('/subscribe', { replace: true });
       return;
     }
@@ -67,7 +68,6 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
                           target.closest('.ppv-content') ||
                           target.closest('.premium-content');
 
-      // Rule 3: PPV content always redirects to payment (overrides everything)
       if (isPPVElement) {
         event.preventDefault();
         event.stopPropagation();
@@ -76,16 +76,16 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
         const contentTitle = target.closest('[data-title]')?.getAttribute('data-title') || 'Premium Content';
         const contentPrice = target.closest('[data-price]')?.getAttribute('data-price') || '99';
         const contentId = target.closest('[data-id]')?.getAttribute('data-id') || '';
-        
+        console.info('[UnifiedAccessGuard] PPV redirect to /payment', { contentId, contentTitle, contentPrice });
         navigate(`/payment?contentId=${contentId}&title=${encodeURIComponent(contentTitle)}&price=${contentPrice}`);
         return;
       }
 
-      // Rule 1: Non-authenticated users on home page
       if (!user && location.pathname === '/') {
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
+        console.info('[UnifiedAccessGuard] Non-auth redirect to /auth?tab=signin from home');
         navigate('/auth?tab=signin');
         return;
       }
@@ -104,6 +104,7 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
+          console.warn('[UnifiedAccessGuard] Click redirect to /subscribe', { path: location.pathname, isExemptElement, isSubscribed });
           navigate('/subscribe');
           return;
         }

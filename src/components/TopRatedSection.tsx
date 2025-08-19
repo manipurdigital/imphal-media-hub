@@ -47,7 +47,6 @@ const TopRatedSection = () => {
             )
           `)
           .eq('content_status', 'published')
-          .is('deleted_at', null)
           .gte('rating', 4.5)
           .order('rating', { ascending: false })
           .limit(10);

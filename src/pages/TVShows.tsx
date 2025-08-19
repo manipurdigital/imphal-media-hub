@@ -51,8 +51,7 @@ const TVShows = () => {
           )
         `)
         .eq('content_type', 'series')
-        .eq('content_status', 'published')
-        .is('deleted_at', null);
+        .eq('content_status', 'published');
 
       if (error) throw error;
 

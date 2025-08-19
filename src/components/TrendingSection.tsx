@@ -47,7 +47,6 @@ const TrendingSection = () => {
             )
           `)
           .eq('content_status', 'published')
-          .is('deleted_at', null)
           .order('view_count', { ascending: false })
           .limit(10);
 
