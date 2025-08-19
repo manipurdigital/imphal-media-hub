@@ -53,9 +53,9 @@ const ContentCarousel = ({ title, items, loading = false }: ContentCarouselProps
   };
 
   return (
-    <section className="mb-16 relative">
-      <div className="mb-4 px-16">
-        <h2 className="text-2xl font-bold text-white hover:text-white/80 transition-colors cursor-pointer">
+    <section className="mb-8 sm:mb-12 lg:mb-16 relative">
+      <div className="mb-3 sm:mb-4 px-4 sm:px-8 lg:px-16">
+        <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white hover:text-white/80 transition-colors cursor-pointer">
           {title}
         </h2>
       </div>

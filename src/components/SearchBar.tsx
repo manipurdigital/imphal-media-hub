@@ -84,7 +84,7 @@ const SearchBar = ({ onSearch, placeholder = "Search movies, shows, actors..." }
   const activeFiltersCount = Object.keys(filters).length;
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-4 animate-fade-in-scale">
+    <div className="w-full max-w-2xl mx-auto space-y-3 sm:space-y-4 animate-fade-in-scale px-4 sm:px-0">
       {/* Enhanced Search Input */}
       <div className="relative group">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 group-focus-within:text-primary transition-colors duration-300" />
@@ -120,7 +120,7 @@ const SearchBar = ({ onSearch, placeholder = "Search movies, shows, actors..." }
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-4 glass-gradient backdrop-blur-md border border-border/50 elevated-shadow animate-fade-in-scale">
+            <PopoverContent className="w-72 sm:w-80 p-3 sm:p-4 glass-gradient backdrop-blur-md border border-border/50 elevated-shadow animate-fade-in-scale">
               <div className="space-y-4">
                 <h4 className="font-medium">Filters</h4>
                 
@@ -201,7 +201,7 @@ const SearchBar = ({ onSearch, placeholder = "Search movies, shows, actors..." }
 
       {/* Enhanced Active Filters */}
       {activeFiltersCount > 0 && (
-        <div className="flex flex-wrap gap-2 animate-slide-down">
+        <div className="flex flex-wrap gap-1 sm:gap-2 animate-slide-down px-1 sm:px-0">
           {filters.category && (
             <Badge variant="secondary" className="flex items-center gap-1">
               Category: {categories.find(c => c.slug === filters.category)?.name}
