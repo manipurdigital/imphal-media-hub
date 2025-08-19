@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState(tabParam === 'reset-password' ? 'reset-password' : (tabParam || 'login'));
+  const [activeTab, setActiveTab] = useState(tabParam === 'reset-password' ? 'reset-password' : tabParam === 'signin' ? 'login' : (tabParam || 'login'));
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -21,6 +21,8 @@ const Auth = () => {
       setActiveTab('reset-password');
     } else if (newTab === 'signup') {
       setActiveTab('signup');
+    } else if (newTab === 'signin') {
+      setActiveTab('login');
     } else {
       setActiveTab('login');
     }

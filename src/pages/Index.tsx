@@ -4,6 +4,7 @@ import Navigation from '@/components/Navigation';
 import HeroSection from '@/components/HeroSection';
 import ContentCarousel from '@/components/ContentCarousel';
 import SearchSection from '@/components/SearchSection';
+import ClickGuard from '@/components/ClickGuard';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
@@ -99,7 +100,7 @@ const Index = () => {
       title: video.title,
       image: getThumbnailImage(video.thumbnail_url),
       rating: video.rating || 7.5,
-      year: video.production_year || video.year || 2024,
+      year: video.year || 2024,
       genre: video.genre,
       duration: formatDuration(video.duration),
       description: video.description || 'No description available.',
@@ -175,37 +176,14 @@ const Index = () => {
     );
   }
 
-  const handlePageClick = async () => {
-    // If user is not signed in, redirect to signup
-    if (!user) {
-      navigate('/auth?tab=signup');
-      return;
-    }
-    
-    // If user is admin, skip subscription check
-    if (userRole === 'admin') {
-      return;
-    }
-    
-    // If user is signed in (non-admin), check subscription status
-    const hasActiveSubscription = await checkSubscription();
-    
-    if (!hasActiveSubscription) {
-      // Redirect to subscription page if no active subscription
-      navigate('/subscription');
-      return;
-    }
-    
-    // User has active subscription, no redirect needed
-  };
-
   return (
-    <div 
-      className="min-h-screen bg-background cursor-pointer" 
-      onClick={handlePageClick}
+    <ClickGuard 
+      enabled={true} 
+      redirectPath="/auth?tab=signin"
     >
-      {/* Navigation */}
-      <Navigation />
+      <div className="min-h-screen bg-background">
+        {/* Navigation */}
+        <Navigation />
 
       {/* Search Section - Always visible */}
       <SearchSection onSearch={handleSearch} />
@@ -338,7 +316,8 @@ const Index = () => {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </ClickGuard>
   );
 };
 
