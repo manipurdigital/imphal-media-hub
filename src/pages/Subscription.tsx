@@ -5,7 +5,9 @@ import { RazorpayCheckout } from '@/components/RazorpayCheckout';
 import { SubscriptionStatus } from '@/components/SubscriptionStatus';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, CreditCard, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Loader2, CreditCard, User, Home, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface SubscriptionPlan {
   id: string;
@@ -63,6 +65,14 @@ const Subscription = () => {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
+          <div className="mb-6">
+            <Link to="/">
+              <Button variant="ghost" className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Home
+              </Button>
+            </Link>
+          </div>
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-foreground mb-2">
               Subscription Management

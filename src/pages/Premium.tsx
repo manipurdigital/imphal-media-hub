@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import VideoPlayer from '@/components/VideoPlayer';
-import { Loader2, Play, Lock, Sparkles, CheckCircle } from 'lucide-react';
+import { Loader2, Play, Lock, Sparkles, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface PayPerViewItem {
   id: string;
@@ -191,6 +192,14 @@ const Premium = () => {
 
   return (
     <main className="pt-24 px-6 md:px-12 lg:px-16">
+      <div className="mb-6">
+        <Link to="/">
+          <Button variant="ghost" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Button>
+        </Link>
+      </div>
       <header className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-foreground flex items-center gap-2">
           <Sparkles className="h-7 w-7 text-primary" /> Premium Pay‑Per‑View
