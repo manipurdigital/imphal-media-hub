@@ -24,6 +24,10 @@ interface ContentCardProps {
     slug: string;
   }>;
   trailerUrl?: string;
+  isPPV?: boolean;
+  isPremium?: boolean;
+  price?: number;
+  currency?: string;
 }
 
 const ContentCard: React.FC<ContentCardProps> = ({
@@ -40,7 +44,11 @@ const ContentCard: React.FC<ContentCardProps> = ({
   director,
   contentType,
   categories = [],
-  trailerUrl
+  trailerUrl,
+  isPPV = false,
+  isPremium = false,
+  price,
+  currency = 'INR'
 }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -48,30 +56,16 @@ const ContentCard: React.FC<ContentCardProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
-  const [canWatch, setCanWatch] = useState(false);
 
   const handleClick = async () => {
-    // Always check if user can watch this specific video
-    if (!videoUrl) {
-      // No video URL means this is a non-subscriber trying to watch
-      if (!user) {
-        navigate('/auth?tab=signup');
-        return;
-      }
-      
-      // User is signed in but can't watch - check subscription
-      const hasActiveSubscription = await checkSubscription();
-      if (!hasActiveSubscription) {
-        navigate('/subscription');
-        return;
-      }
-      
-      // Show subscription required message
-      alert('This video requires an active subscription to watch.');
+    // If it's PPV/Premium content, redirect to payment page
+    if (isPPV || isPremium) {
+      const paymentUrl = `/payment?contentId=${id}&title=${encodeURIComponent(title)}&price=${price || 99}&currency=${currency}`;
+      navigate(paymentUrl);
       return;
     }
-    
-    // Video URL is available, user can watch
+
+    // For regular content, show the video player
     setShowPlayer(true);
   };
 
@@ -89,6 +83,7 @@ const ContentCard: React.FC<ContentCardProps> = ({
           }
         }}
         aria-label={`Play ${title}`}
+        data-content-type={isPPV ? 'ppv' : isPremium ? 'premium' : 'regular'}
       >
         {/* Loading State */}
         {isLoading && (
@@ -125,12 +120,16 @@ const ContentCard: React.FC<ContentCardProps> = ({
             </div>
           )}
           
-          {/* Hover Overlay with play button - show lock if can't watch */}
+          {/* Hover Overlay with play button - show different icons for PPV/Premium */}
           <div className="content-card-overlay">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <button className={`w-10 h-10 ${videoUrl ? 'bg-white' : 'bg-gray-500'} rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors`}>
-                  {videoUrl ? (
+                <button className={`w-10 h-10 ${(isPPV || isPremium) ? 'bg-yellow-500' : videoUrl ? 'bg-white' : 'bg-gray-500'} rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors`}>
+                  {(isPPV || isPremium) ? (
+                    <svg className="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15.5v-11l8 5.5-8 5.5z"/>
+                    </svg>
+                  ) : videoUrl ? (
                     <svg className="w-5 h-5 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                       <path d="m7.05 3.606 13.49 7.788a.7.7 0 0 1 0 1.212L7.05 20.394A.7.7 0 0 1 6 19.788V4.212a.7.7 0 0 1 1.05-.606z"/>
                     </svg>
@@ -153,7 +152,9 @@ const ContentCard: React.FC<ContentCardProps> = ({
             </div>
             <div className="mt-3">
               <div className="flex items-center space-x-2 text-sm text-gray-300 mb-2">
-                {videoUrl ? (
+                {(isPPV || isPremium) ? (
+                  <span className="text-yellow-400 font-semibold">💰 {price ? `₹${price}` : 'Premium'}</span>
+                ) : videoUrl ? (
                   <span className="text-green-400 font-semibold">98% Match</span>
                 ) : (
                   <span className="text-red-400 font-semibold">🔒 Subscription Required</span>

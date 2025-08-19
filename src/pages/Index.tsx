@@ -4,7 +4,6 @@ import Navigation from '@/components/Navigation';
 import HeroSection from '@/components/HeroSection';
 import ContentCarousel from '@/components/ContentCarousel';
 import SearchSection from '@/components/SearchSection';
-import ClickGuard from '@/components/ClickGuard';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
@@ -177,13 +176,9 @@ const Index = () => {
   }
 
   return (
-    <ClickGuard 
-      enabled={true} 
-      redirectPath="/auth?tab=signin"
-    >
-      <div className="min-h-screen bg-background">
-        {/* Navigation */}
-        <Navigation />
+    <div className="min-h-screen bg-background">
+      {/* Navigation */}
+      <Navigation />
 
       {/* Search Section - Always visible */}
       <SearchSection onSearch={handleSearch} />
@@ -316,8 +311,7 @@ const Index = () => {
           </div>
         </div>
       </footer>
-      </div>
-    </ClickGuard>
+    </div>
   );
 };
 

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
+import GlobalAccessGuard from "./components/GlobalAccessGuard";
 import AdminRoute from "./components/AdminRoute";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
@@ -26,6 +27,8 @@ import TVShows from "./pages/TVShows";
 import MyList from "./pages/MyList";
 import Profile from "./pages/Profile";
 import Subscription from "./pages/Subscription";
+import Subscribe from "./pages/Subscribe";
+import Payment from "./pages/Payment";
 import Premium from "./pages/Premium";
 import Recommendations from "./pages/Recommendations";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -40,93 +43,97 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/verify-email" element={<VerificationPending />} />
-            <Route path="/movies" element={<Movies />} />
-            <Route path="/tv-shows" element={<TVShows />} />
-            <Route path="/my-list" element={<MyList />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/premium" element={<Premium />} />
-            <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
-            <Route path="/recommendations" element={<ProtectedRoute><Recommendations /></ProtectedRoute>} />
-            
-            {/* Admin Routes */}
-            <Route path="/admin" element={
-              <AdminRoute>
-                <AdminLayout>
-                  <AdminDashboard />
-                </AdminLayout>
-              </AdminRoute>
-            } />
-            <Route path="/admin/videos" element={
-              <AdminRoute>
-                <AdminLayout>
-                  <VideoManagement />
-                </AdminLayout>
-              </AdminRoute>
-            } />
-            <Route path="/admin/video-accessibility" element={
-              <AdminRoute>
-                <AdminLayout>
-                  <VideoAccessibility />
-                </AdminLayout>
-              </AdminRoute>
-            } />
-            <Route path="/admin/users" element={
-              <AdminRoute>
-                <AdminLayout>
-                  <UserManagement />
-                </AdminLayout>
-              </AdminRoute>
-            } />
-            <Route path="/admin/collections" element={
-              <AdminRoute>
-                <AdminLayout>
-                  <CollectionsManagement />
-                </AdminLayout>
-              </AdminRoute>
-            } />
-            <Route path="/admin/categories" element={
-              <AdminRoute>
-                <AdminLayout>
-                  <CategoriesManagement />
-                </AdminLayout>
-              </AdminRoute>
-            } />
-            <Route path="/admin/subscription-plans" element={
-              <AdminRoute>
-                <AdminLayout>
-                  <SubscriptionPlansManagement />
-                </AdminLayout>
-              </AdminRoute>
-            } />
-            <Route path="/admin/plan-features" element={
-              <AdminRoute>
-                <AdminLayout>
-                  <PlanFeaturesManagement />
-                </AdminLayout>
-              </AdminRoute>
-            } />
-            <Route path="/admin/analytics" element={
-              <AdminRoute>
-                <AdminLayout>
-                  <Analytics />
-                </AdminLayout>
-              </AdminRoute>
-            } />
-            <Route path="/admin/settings" element={
-              <AdminRoute>
-                <AdminLayout>
-                  <Settings />
-                </AdminLayout>
-              </AdminRoute>
-            } />
-            
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <GlobalAccessGuard>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/verify-email" element={<VerificationPending />} />
+              <Route path="/movies" element={<Movies />} />
+              <Route path="/tv-shows" element={<TVShows />} />
+              <Route path="/my-list" element={<MyList />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/premium" element={<Premium />} />
+              <Route path="/subscribe" element={<Subscribe />} />
+              <Route path="/payment" element={<Payment />} />
+              <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
+              <Route path="/recommendations" element={<ProtectedRoute><Recommendations /></ProtectedRoute>} />
+              
+              {/* Admin Routes */}
+              <Route path="/admin" element={
+                <AdminRoute>
+                  <AdminLayout>
+                    <AdminDashboard />
+                  </AdminLayout>
+                </AdminRoute>
+              } />
+              <Route path="/admin/videos" element={
+                <AdminRoute>
+                  <AdminLayout>
+                    <VideoManagement />
+                  </AdminLayout>
+                </AdminRoute>
+              } />
+              <Route path="/admin/video-accessibility" element={
+                <AdminRoute>
+                  <AdminLayout>
+                    <VideoAccessibility />
+                  </AdminLayout>
+                </AdminRoute>
+              } />
+              <Route path="/admin/users" element={
+                <AdminRoute>
+                  <AdminLayout>
+                    <UserManagement />
+                  </AdminLayout>
+                </AdminRoute>
+              } />
+              <Route path="/admin/collections" element={
+                <AdminRoute>
+                  <AdminLayout>
+                    <CollectionsManagement />
+                  </AdminLayout>
+                </AdminRoute>
+              } />
+              <Route path="/admin/categories" element={
+                <AdminRoute>
+                  <AdminLayout>
+                    <CategoriesManagement />
+                  </AdminLayout>
+                </AdminRoute>
+              } />
+              <Route path="/admin/subscription-plans" element={
+                <AdminRoute>
+                  <AdminLayout>
+                    <SubscriptionPlansManagement />
+                  </AdminLayout>
+                </AdminRoute>
+              } />
+              <Route path="/admin/plan-features" element={
+                <AdminRoute>
+                  <AdminLayout>
+                    <PlanFeaturesManagement />
+                  </AdminLayout>
+                </AdminRoute>
+              } />
+              <Route path="/admin/analytics" element={
+                <AdminRoute>
+                  <AdminLayout>
+                    <Analytics />
+                  </AdminLayout>
+                </AdminRoute>
+              } />
+              <Route path="/admin/settings" element={
+                <AdminRoute>
+                  <AdminLayout>
+                    <Settings />
+                  </AdminLayout>
+                </AdminRoute>
+              } />
+              
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </GlobalAccessGuard>
         </BrowserRouter>
       </TooltipProvider>
       </FavoritesProvider>
