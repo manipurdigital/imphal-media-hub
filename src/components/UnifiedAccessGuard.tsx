@@ -13,6 +13,13 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Check subscription on mount for authenticated users
+  useEffect(() => {
+    if (user && isSubscribed === null) {
+      checkSubscription();
+    }
+  }, [user, isSubscribed, checkSubscription]);
+
   // Define paths that are always accessible
   const publicPaths = ['/auth', '/verify-email'];
   const authenticatedExemptPaths = ['/profile', '/subscribe', '/payment'];
@@ -40,9 +47,12 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
     }
 
     // 4. Authenticated users without subscription - redirect to subscribe
-    const hasSubscription = await checkSubscription();
+    // Wait for subscription check if still loading
+    if (loading) return;
+    
+    const hasSubscription = isSubscribed !== null ? isSubscribed : await checkSubscription();
     if (!hasSubscription) {
-      console.warn('[UnifiedAccessGuard] Route redirect to /subscribe', { path: currentPath, hasSubscription });
+      console.warn('[UnifiedAccessGuard] Route redirect to /subscribe', { path: currentPath, hasSubscription, isSubscribed });
       navigate('/subscribe', { replace: true });
       return;
     }
@@ -99,12 +109,15 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
                                target.closest('a[href*="/profile"]') ||
                                target.closest('button[data-action="signout"]');
 
-        const hasSubscription = typeof isSubscribed === 'boolean' ? isSubscribed : await checkSubscription();
+        // Don't check if still loading subscription status
+        if (loading) return;
+        
+        const hasSubscription = isSubscribed !== null ? isSubscribed : await checkSubscription();
         if (!hasSubscription && !isExemptElement && !authenticatedExemptPaths.some(path => location.pathname.startsWith(path))) {
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
-          console.warn('[UnifiedAccessGuard] Click redirect to /subscribe', { path: location.pathname, isExemptElement, isSubscribed });
+          console.warn('[UnifiedAccessGuard] Click redirect to /subscribe', { path: location.pathname, isExemptElement, isSubscribed, hasSubscription });
           navigate('/subscribe');
           return;
         }

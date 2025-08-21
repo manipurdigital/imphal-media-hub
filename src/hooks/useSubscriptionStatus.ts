@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -24,6 +24,14 @@ export const useSubscriptionStatus = () => {
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const { user } = useAuth();
+
+  // Reset state when user changes
+  useEffect(() => {
+    if (!user) {
+      setIsSubscribed(false);
+      setSubscription(null);
+    }
+  }, [user]);
 
   const checkSubscription = useCallback(async () => {
     if (!user) {
