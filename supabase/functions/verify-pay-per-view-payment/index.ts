@@ -13,22 +13,32 @@ async function verifyRazorpaySignature(
   signature: string,
   secret: string
 ): Promise<boolean> {
-  const body = orderId + "|" + paymentId;
-  const expectedSignature = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  ).then(key =>
-    crypto.subtle.sign("HMAC", key, new TextEncoder().encode(body))
-  ).then(signature =>
-    Array.from(new Uint8Array(signature))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('')
-  );
-  
-  return signature === expectedSignature;
+  try {
+    const body = `${orderId}|${paymentId}`;
+    console.log(`Verifying PPV signature for body: ${body}`);
+    
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"]
+    );
+    
+    const signatureBuffer = await crypto.subtle.sign("HMAC", key, encoder.encode(body));
+    const expectedSignature = Array.from(new Uint8Array(signatureBuffer))
+      .map(b => b.toString(16).padStart(2, "0"))
+      .join("");
+    
+    console.log(`Expected PPV signature: ${expectedSignature}`);
+    console.log(`Received PPV signature: ${signature}`);
+    
+    return signature === expectedSignature;
+  } catch (error) {
+    console.error("PPV signature verification error:", error);
+    return false;
+  }
 }
 
 serve(async (req) => {
@@ -134,8 +144,13 @@ serve(async (req) => {
 
   } catch (error) {
     console.error("Error verifying pay-per-view payment:", error);
+    console.error("Error details:", {
+      message: error.message,
+      stack: error.stack
+    });
     return new Response(JSON.stringify({ 
-      error: error.message || "Payment verification failed" 
+      error: error.message || "Payment verification failed",
+      details: "Check server logs for more information"
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
