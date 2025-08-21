@@ -47,18 +47,23 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
     }
 
     // 4. Authenticated users without subscription - redirect to subscribe
-    // Wait for subscription check if still loading
+    // Don't redirect if still loading subscription status
     if (loading) return;
     
-    const hasSubscription = isSubscribed !== null ? isSubscribed : await checkSubscription();
-    if (!hasSubscription) {
-      console.warn('[UnifiedAccessGuard] Route redirect to /subscribe', { path: currentPath, hasSubscription, isSubscribed });
+    // Use cached state if available, otherwise check subscription
+    let hasSubscription = isSubscribed;
+    if (hasSubscription === null) {
+      hasSubscription = await checkSubscription();
+    }
+    
+    if (hasSubscription === false) {
+      console.warn('[UnifiedAccessGuard] Route redirect to /subscribe', { path: currentPath, hasSubscription, isSubscribed, loading });
       navigate('/subscribe', { replace: true });
       return;
     }
 
-    // 5. Authenticated users with subscription can access any non-PPV content
-  }, [user, location.pathname, navigate, checkSubscription]);
+    // 5. Authenticated users with subscription can access any non-PPV content normally
+  }, [user, location.pathname, navigate, checkSubscription, isSubscribed, loading]);
 
   // Handle route-based access control on navigation
   useEffect(() => {
@@ -112,12 +117,17 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
         // Don't check if still loading subscription status
         if (loading) return;
         
-        const hasSubscription = isSubscribed !== null ? isSubscribed : await checkSubscription();
-        if (!hasSubscription && !isExemptElement && !authenticatedExemptPaths.some(path => location.pathname.startsWith(path))) {
+        // Use cached state if available, otherwise check subscription
+        let hasSubscription = isSubscribed;
+        if (hasSubscription === null) {
+          hasSubscription = await checkSubscription();
+        }
+        
+        if (hasSubscription === false && !isExemptElement && !authenticatedExemptPaths.some(path => location.pathname.startsWith(path))) {
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
-          console.warn('[UnifiedAccessGuard] Click redirect to /subscribe', { path: location.pathname, isExemptElement, isSubscribed, hasSubscription });
+          console.warn('[UnifiedAccessGuard] Click redirect to /subscribe', { path: location.pathname, isExemptElement, isSubscribed, hasSubscription, loading });
           navigate('/subscribe');
           return;
         }
@@ -147,7 +157,7 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
         document.removeEventListener(type, handler, true);
       });
     };
-  }, [user, isSubscribed, location.pathname, navigate]);
+  }, [user, isSubscribed, location.pathname, navigate, loading, checkSubscription]);
 
   // Visual overlay for restricted access
   const shouldShowOverlay = () => {
