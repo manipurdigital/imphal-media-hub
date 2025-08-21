@@ -26,48 +26,13 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
 
   // Check if current path should redirect based on user state
   const checkRouteAccess = useCallback(async () => {
-    const currentPath = location.pathname;
+    // Remove all automatic route redirects - let users browse freely
+    // Only PPV content will be gated via click handlers
+  }, []);
 
-    // 1. Allow public paths for non-authenticated users
-    if (!user && publicPaths.some(path => currentPath.startsWith(path))) {
-      return;
-    }
-
-    // 2. Non-authenticated users - on home page redirect to auth
-    if (!user) {
-      if (currentPath === '/') {
-        navigate('/auth?tab=signin', { replace: true });
-      }
-      return;
-    }
-
-    // 3. Authenticated users - allow exempt paths always
-    if (authenticatedExemptPaths.some(path => currentPath.startsWith(path))) {
-      return;
-    }
-
-    // 4. Authenticated users without subscription - redirect to subscribe
-    // Don't redirect if still loading subscription status
-    if (loading) return;
-    
-    // Use cached state if available, otherwise check subscription
-    let hasSubscription = isSubscribed;
-    if (hasSubscription === null) {
-      hasSubscription = await checkSubscription();
-    }
-    
-    if (hasSubscription === false) {
-      console.warn('[UnifiedAccessGuard] Route redirect to /subscribe', { path: currentPath, hasSubscription, isSubscribed, loading });
-      navigate('/subscribe', { replace: true });
-      return;
-    }
-
-    // 5. Authenticated users with subscription can access any non-PPV content normally
-  }, [user, location.pathname, navigate, checkSubscription, isSubscribed, loading]);
-
-  // Handle route-based access control on navigation
+  // Handle route-based access control on navigation - DISABLED for free browsing
   useEffect(() => {
-    checkRouteAccess();
+    // checkRouteAccess(); // Commented out to allow free browsing
   }, [checkRouteAccess]);
 
   // Global click handler for all interactions
@@ -96,42 +61,7 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
         return;
       }
 
-      if (!user && location.pathname === '/') {
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-        console.info('[UnifiedAccessGuard] Non-auth redirect to /auth?tab=signin from home');
-        navigate('/auth?tab=signin');
-        return;
-      }
-
-      // Rule 2: Authenticated users without subscription (except exempt interactions)
-      if (user) {
-        // Check if this is an exempt interaction (profile, sign out)
-        const isExemptElement = target.closest('[data-exempt="true"]') ||
-                               target.closest('.profile-link') ||
-                               target.closest('.sign-out-button') ||
-                               target.closest('a[href*="/profile"]') ||
-                               target.closest('button[data-action="signout"]');
-
-        // Don't check if still loading subscription status
-        if (loading) return;
-        
-        // Use cached state if available, otherwise check subscription
-        let hasSubscription = isSubscribed;
-        if (hasSubscription === null) {
-          hasSubscription = await checkSubscription();
-        }
-        
-        if (hasSubscription === false && !isExemptElement && !authenticatedExemptPaths.some(path => location.pathname.startsWith(path))) {
-          event.preventDefault();
-          event.stopPropagation();
-          event.stopImmediatePropagation();
-          console.warn('[UnifiedAccessGuard] Click redirect to /subscribe', { path: location.pathname, isExemptElement, isSubscribed, hasSubscription, loading });
-          navigate('/subscribe');
-          return;
-        }
-      }
+      // Remove all other automatic redirects - only PPV content is gated
     };
 
     // Add event listeners in capture phase for maximum control
@@ -157,67 +87,18 @@ const UnifiedAccessGuard: React.FC<UnifiedAccessGuardProps> = ({ children }) => 
         document.removeEventListener(type, handler, true);
       });
     };
-  }, [user, isSubscribed, location.pathname, navigate, loading, checkSubscription]);
+  }, [user, isSubscribed, location.pathname, navigate, loading]);
 
-  // Visual overlay for restricted access
+  // Visual overlay for restricted access - DISABLED for free browsing
   const shouldShowOverlay = () => {
-    const currentPath = location.pathname;
-    
-    // Show overlay for non-authenticated users on home page
-    if (!user && currentPath === '/') {
-      return {
-        show: true,
-        message: '👋 Sign in to start watching',
-        onClick: () => navigate('/auth?tab=signin')
-      };
-    }
-
-    // Show overlay for authenticated users without subscription (except exempt paths)
-    if (user && isSubscribed === false && !loading && !authenticatedExemptPaths.some(path => currentPath.startsWith(path))) {
-      return {
-        show: true,
-        message: '🔐 Subscribe to unlock content',
-        onClick: () => navigate('/subscribe')
-      };
-    }
-
+    // No overlays - let users browse freely, only PPV content is gated
     return { show: false };
   };
 
   const overlay = shouldShowOverlay();
 
-  if (overlay.show) {
-    return (
-      <div className="relative group">
-        {children}
-        {/* Invisible interaction blocker */}
-        <div 
-          className="absolute inset-0 z-50 cursor-pointer bg-transparent"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            overlay.onClick();
-          }}
-          onKeyDown={(e) => {
-            if (['Enter', ' '].includes(e.key)) {
-              e.preventDefault();
-              e.stopPropagation();
-              overlay.onClick();
-            }
-          }}
-          tabIndex={0}
-          role="button"
-          aria-label="Access restricted - click to continue"
-          style={{ pointerEvents: 'all' }}
-        />
-        {/* Hover hint */}
-        <div className="absolute top-4 right-4 z-50 bg-black/90 text-white px-4 py-2 rounded-lg text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none backdrop-blur-sm">
-          {overlay.message}
-        </div>
-      </div>
-    );
-  }
-
+  // Since overlay.show is always false, this code will never execute
+  // Keeping minimal structure for future use if needed
   return <>{children}</>;
 };
 
