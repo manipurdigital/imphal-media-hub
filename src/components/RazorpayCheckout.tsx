@@ -88,6 +88,44 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
         name: 'KangleiPremiumFlix',
         description: `${plan.name} Subscription`,
         order_id: orderData.orderId,
+        config: {
+          display: {
+            blocks: {
+              banks: {
+                name: 'Pay using Credit/Debit Cards',
+                instruments: [
+                  {
+                    method: 'card',
+                    issuers: ['HDFC', 'ICICI', 'SBI', 'AXIS', 'AMEX', 'VISA', 'MASTERCARD']
+                  },
+                  {
+                    method: 'netbanking'
+                  },
+                  {
+                    method: 'wallet'
+                  },
+                  {
+                    method: 'upi'
+                  }
+                ]
+              }
+            },
+            sequence: ['block.banks'],
+            preferences: {
+              show_default_blocks: true,
+            }
+          }
+        },
+        method: {
+          card: true,
+          netbanking: true,
+          wallet: true,
+          upi: true,
+          paylater: true
+        },
+        card: {
+          currency: orderData.currency
+        },
         handler: async (response: any) => {
           try {
             // Verify payment
@@ -123,7 +161,10 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
         modal: {
           ondismiss: () => {
             setProcessingPlan(null);
-          }
+          },
+          confirm_close: true,
+          escape: true,
+          backdropclose: false
         },
         prefill: {
           name: user.user_metadata?.full_name || '',
@@ -132,6 +173,10 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
         theme: {
           color: '#3b82f6',
         },
+        retry: {
+          enabled: true,
+          max_count: 3
+        }
       };
 
       const razorpay = new window.Razorpay(options);
