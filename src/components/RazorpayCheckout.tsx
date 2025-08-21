@@ -80,7 +80,7 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Razorpay options
+      // Razorpay options with international card support
       const options = {
         key: orderData.keyId,
         amount: orderData.amount,
@@ -88,43 +88,51 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
         name: 'KangleiPremiumFlix',
         description: `${plan.name} Subscription`,
         order_id: orderData.orderId,
-        config: {
-          display: {
-            blocks: {
-              banks: {
-                name: 'Pay using Credit/Debit Cards',
-                instruments: [
-                  {
-                    method: 'card',
-                    issuers: ['HDFC', 'ICICI', 'SBI', 'AXIS', 'AMEX', 'VISA', 'MASTERCARD']
-                  },
-                  {
-                    method: 'netbanking'
-                  },
-                  {
-                    method: 'wallet'
-                  },
-                  {
-                    method: 'upi'
-                  }
-                ]
-              }
-            },
-            sequence: ['block.banks'],
-            preferences: {
-              show_default_blocks: true,
-            }
-          }
-        },
+        // Enable all payment methods including international cards
         method: {
           card: true,
           netbanking: true,
           wallet: true,
           upi: true,
-          paylater: true
+          paylater: true,
+          emi: true
         },
+        // Card configuration for international support
         card: {
-          currency: orderData.currency
+          currency: orderData.currency,
+          name: 'Credit/Debit Cards (International & Domestic)'
+        },
+        // Enable international payment methods
+        allow_rotation: true,
+        remember_customer: false,
+        // Enhanced display configuration
+        config: {
+          display: {
+            blocks: {
+              card: {
+                name: 'Credit/Debit Cards',
+                instruments: [
+                  {
+                    method: 'card',
+                    types: ['credit', 'debit'],
+                    networks: ['VISA', 'MASTERCARD', 'AMEX', 'RUPAY']
+                  }
+                ]
+              },
+              other: {
+                name: 'Other Payment Methods',
+                instruments: [
+                  { method: 'netbanking' },
+                  { method: 'wallet' },
+                  { method: 'upi' }
+                ]
+              }
+            },
+            sequence: ['block.card', 'block.other'],
+            preferences: {
+              show_default_blocks: true
+            }
+          }
         },
         handler: async (response: any) => {
           try {
@@ -159,12 +167,48 @@ export const RazorpayCheckout: React.FC<RazorpayCheckoutProps> = ({
           }
         },
         modal: {
-          ondismiss: () => {
+          ondismiss: (reason: any) => {
+            console.log('Payment dismissed, reason:', reason);
             setProcessingPlan(null);
+            
+            if (reason && reason.code) {
+              let errorMessage = 'Payment failed. Please try again.';
+              
+              switch (reason.code) {
+                case 'PAYMENT_FAILED':
+                  errorMessage = 'Payment failed. Please check your card details and try again.';
+                  break;
+                case 'INTERNATIONAL_CARD_NOT_SUPPORTED':
+                  errorMessage = 'International cards are not enabled on this merchant account. Please contact support.';
+                  break;
+                case 'CARD_NOT_SUPPORTED':
+                  errorMessage = 'This card type is not supported. Please try a different card.';
+                  break;
+                case 'NETWORK_ERROR':
+                  errorMessage = 'Network error. Please check your connection and try again.';
+                  break;
+                default:
+                  errorMessage = `Payment failed: ${reason.description || reason.code}`;
+              }
+              
+              toast({
+                title: 'Payment Failed',
+                description: errorMessage,
+                variant: 'destructive',
+              });
+            } else {
+              toast({
+                title: 'Payment Cancelled',
+                description: 'Payment was cancelled by user.',
+                variant: 'destructive',
+              });
+            }
           },
           confirm_close: true,
           escape: true,
-          backdropclose: false
+          backdropclose: false,
+          animation: true,
+          handleback: true
         },
         prefill: {
           name: user.user_metadata?.full_name || '',
