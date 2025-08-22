@@ -61,11 +61,15 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
     if (authError || !user) throw new Error("Authentication failed");
 
-    const { orderId, paymentId, signature } = await req.json();
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json();
     
-    if (!orderId || !paymentId || !signature) {
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       throw new Error("Missing required payment details");
     }
+
+    const orderId = razorpay_order_id;
+    const paymentId = razorpay_payment_id;
+    const signature = razorpay_signature;
 
     // Get Razorpay secret with fallback support
     const razorpayKeySecret = (Deno.env.get("RAZORPAY_KEY_SECRET") ?? Deno.env.get("RAZORPAY_SECRET") ?? "").trim();
