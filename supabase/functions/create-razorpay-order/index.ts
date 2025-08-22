@@ -45,16 +45,16 @@ serve(async (req) => {
     if (planError || !plan) throw new Error("Subscription plan not found");
 
     // Create Razorpay order
-    const razorpayKeyId = Deno.env.get("RAZORPAY_KEY_ID");
-    const razorpayKeySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
+    const razorpayKeyId = (Deno.env.get("RAZORPAY_KEY_ID") ?? Deno.env.get("RAZORPAY_KEY") ?? Deno.env.get("RAZORPAY_ID") ?? "").trim();
+    const razorpayKeySecret = (Deno.env.get("RAZORPAY_KEY_SECRET") ?? Deno.env.get("RAZORPAY_SECRET") ?? "").trim();
     
     console.log("Environment check:", {
       hasKeyId: !!razorpayKeyId,
       hasKeySecret: !!razorpayKeySecret,
       keyIdLength: razorpayKeyId?.length || 0,
       keySecretLength: razorpayKeySecret?.length || 0,
-      keyIdFirst4: razorpayKeyId?.substring(0, 4),
-      keySecretFirst4: razorpayKeySecret?.substring(0, 4)
+      keyIdFirst4: razorpayKeyId ? razorpayKeyId.substring(0, 4) : undefined,
+      keySecretFirst4: razorpayKeySecret ? razorpayKeySecret.substring(0, 4) : undefined
     });
     
     if (!razorpayKeyId || !razorpayKeySecret) {
@@ -63,11 +63,6 @@ serve(async (req) => {
         RAZORPAY_KEY_SECRET: !!razorpayKeySecret
       });
       throw new Error("Razorpay credentials not configured");
-    }
-
-    if (!razorpayKeyId.startsWith('rzp_')) {
-      console.error("Invalid Razorpay Key ID format. Expected format: rzp_test_... or rzp_live_...");
-      throw new Error("Invalid Razorpay Key ID format");
     }
 
     // Generate a short receipt ID (max 40 chars for Razorpay)

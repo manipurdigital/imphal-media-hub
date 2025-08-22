@@ -78,8 +78,13 @@ serve(async (req) => {
     }
 
     // Verify signature
-    const razorpayKeySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
+    const razorpayKeySecret = (Deno.env.get("RAZORPAY_KEY_SECRET") ?? Deno.env.get("RAZORPAY_SECRET") ?? "").trim();
     if (!razorpayKeySecret) {
+      console.error("Missing Razorpay secret:", {
+        hasSecret: !!razorpayKeySecret,
+        secretLength: razorpayKeySecret?.length || 0,
+        secretFirst4: razorpayKeySecret ? razorpayKeySecret.substring(0, 4) : undefined
+      });
       throw new Error("Razorpay secret not configured");
     }
 
