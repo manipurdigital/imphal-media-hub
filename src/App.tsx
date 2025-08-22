@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
 import UnifiedAccessGuard from "./components/UnifiedAccessGuard";
+import MobileApp from "./components/MobileApp";
 import AdminRoute from "./components/AdminRoute";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
@@ -43,7 +44,8 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <UnifiedAccessGuard>
+          <MobileApp>
+            <UnifiedAccessGuard>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
@@ -133,7 +135,8 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </UnifiedAccessGuard>
+            </UnifiedAccessGuard>
+          </MobileApp>
         </BrowserRouter>
       </TooltipProvider>
       </FavoritesProvider>
