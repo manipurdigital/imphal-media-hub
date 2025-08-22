@@ -52,7 +52,9 @@ serve(async (req) => {
       hasKeyId: !!razorpayKeyId,
       hasKeySecret: !!razorpayKeySecret,
       keyIdLength: razorpayKeyId?.length || 0,
-      keySecretLength: razorpayKeySecret?.length || 0
+      keySecretLength: razorpayKeySecret?.length || 0,
+      keyIdFirst4: razorpayKeyId?.substring(0, 4),
+      keySecretFirst4: razorpayKeySecret?.substring(0, 4)
     });
     
     if (!razorpayKeyId || !razorpayKeySecret) {
@@ -61,6 +63,11 @@ serve(async (req) => {
         RAZORPAY_KEY_SECRET: !!razorpayKeySecret
       });
       throw new Error("Razorpay credentials not configured");
+    }
+
+    if (!razorpayKeyId.startsWith('rzp_')) {
+      console.error("Invalid Razorpay Key ID format. Expected format: rzp_test_... or rzp_live_...");
+      throw new Error("Invalid Razorpay Key ID format");
     }
 
     // Generate a short receipt ID (max 40 chars for Razorpay)
