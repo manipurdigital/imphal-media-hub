@@ -5,12 +5,14 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useSubscriptionStatus } from '@/hooks/useSubscriptionStatus';
 import heroImage from '@/assets/hero-featured.jpg';
 
 const HeroSection: React.FC = () => {
   const [showPlayer, setShowPlayer] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const { user } = useAuth();
+  const { checkSubscription } = useSubscriptionStatus();
   const navigate = useNavigate();
 
   // Fetch all featured videos
@@ -74,14 +76,26 @@ const HeroSection: React.FC = () => {
 
   const backgroundImage = currentVideo?.thumbnail_url || heroImage;
 
-  // Handle play button click with authentication check
-  const handlePlayClick = () => {
+  // Handle play button click with subscription check
+  const handlePlayClick = async () => {
     if (!user) {
       // Not authenticated, redirect to auth page
       navigate('/auth');
-    } else {
-      // Authenticated, redirect to subscription page
+      return;
+    }
+
+    // Check subscription status
+    const hasSubscription = await checkSubscription();
+    
+    if (!hasSubscription) {
+      // No active subscription, redirect to subscription page
       navigate('/subscription');
+      return;
+    }
+
+    // Has active subscription, play the video
+    if (currentVideo?.video_url) {
+      setShowPlayer(true);
     }
   };
 

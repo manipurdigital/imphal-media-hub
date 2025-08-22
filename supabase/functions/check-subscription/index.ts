@@ -55,6 +55,16 @@ serve(async (req) => {
       subscription.current_period_end &&
       new Date(subscription.current_period_end) > now;
 
+    console.log("Subscription check details:", {
+      userId: user.id,
+      email: user.email,
+      hasSubscription: !!subscription,
+      subscriptionStatus: subscription?.subscription_status,
+      currentPeriodEnd: subscription?.current_period_end,
+      now: now.toISOString(),
+      isActive
+    });
+
     // If subscription exists but is expired, update status
     if (subscription && !isActive && subscription.subscription_status === "active") {
       await supabaseClient

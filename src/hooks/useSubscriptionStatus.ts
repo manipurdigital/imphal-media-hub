@@ -51,6 +51,7 @@ export const useSubscriptionStatus = () => {
         return false;
       }
 
+      console.log('Subscription check response:', data);
       setIsSubscribed(data.isSubscribed);
       setSubscription(data.subscription);
       return data.isSubscribed;
