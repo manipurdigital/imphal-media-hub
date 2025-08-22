@@ -36,12 +36,18 @@ const Auth = () => {
   }, [user, loading, navigate, activeTab]);
 
   if (loading) {
+    console.log('Auth: Showing loading state');
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="text-foreground text-sm">Loading...</p>
+        </div>
       </div>
     );
   }
+
+  console.log('Auth: Rendering auth forms', { user, loading, activeTab });
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">

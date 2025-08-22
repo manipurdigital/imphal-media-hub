@@ -641,4 +641,29 @@
     white-space: nowrap;
     border: 0;
   }
+
+  /* Mobile optimizations */
+  .mobile-safe-area {
+    /* Safe area handling is done via inline styles in MobileApp component */
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height for mobile */
+  }
+
+  .mobile-touch-optimized {
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Ensure content is visible on mobile */
+  @media (max-width: 768px) {
+    body {
+      font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    .min-h-screen {
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+  }
 }

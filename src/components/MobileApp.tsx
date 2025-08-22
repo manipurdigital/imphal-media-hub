@@ -13,6 +13,9 @@ const MobileApp = ({ children }: MobileAppProps) => {
   const { isNative, isMobile } = useMobile();
   const safeAreaInsets = useSafeArea();
   
+  // Debug logging for mobile app initialization
+  console.log('MobileApp: Rendering with', { isNative, isMobile, safeAreaInsets });
+  
   // Initialize mobile-specific features
   useStatusBar();
   useBackButton();
