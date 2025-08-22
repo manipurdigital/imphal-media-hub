@@ -1320,6 +1320,24 @@ export type Database = {
           username: string
         }[]
       }
+      get_pay_per_view_content_with_purchase_status: {
+        Args: { p_user_id?: string }
+        Returns: {
+          can_watch: boolean
+          currency: string
+          description: string
+          duration_minutes: number
+          id: string
+          is_purchased: boolean
+          preview_url: string
+          price: number
+          purchase_status: string
+          purchased_at: string
+          thumbnail_url: string
+          title: string
+          video_id: string
+        }[]
+      }
       get_pay_per_view_content_with_status: {
         Args: { p_user_id?: string }
         Returns: {
