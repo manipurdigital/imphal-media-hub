@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Loader2, Sparkles, CheckCircle, Play } from 'lucide-react';
 import { useDirectPayment } from '@/hooks/useDirectPayment';
 
 interface PayPerViewItem {
@@ -14,6 +14,9 @@ interface PayPerViewItem {
   price: number;
   currency: string;
   thumbnail_url: string | null;
+  is_purchased?: boolean;
+  purchase_status?: string;
+  can_watch?: boolean;
 }
 
 const PremiumPPVSection = () => {
@@ -25,7 +28,7 @@ const PremiumPPVSection = () => {
     const load = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        const { data, error } = await supabase.rpc('get_pay_per_view_content_with_status', {
+        const { data, error } = await supabase.rpc('get_pay_per_view_content_with_purchase_status', {
           p_user_id: user?.id ?? null,
         });
         if (error) throw error;
@@ -111,10 +114,24 @@ const PremiumPPVSection = () => {
                     <div className="w-full h-full bg-muted" />
                   )}
                   <div className="absolute top-2 left-2">
-                    <Badge className="bg-primary text-primary-foreground">
-                      {formatPrice(item.price, item.currency)}
-                    </Badge>
+                    {item.is_purchased ? (
+                      <Badge className="bg-green-600 text-white">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Purchased
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-primary text-primary-foreground">
+                        {formatPrice(item.price, item.currency)}
+                      </Badge>
+                    )}
                   </div>
+                  {item.is_purchased && (
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                      <div className="bg-white/90 rounded-full p-2">
+                        <Play className="h-6 w-6 text-black fill-black" />
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <CardContent className="p-3">
                   <p className="text-sm font-medium line-clamp-1 text-foreground">{item.title}</p>
