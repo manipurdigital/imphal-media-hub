@@ -74,11 +74,24 @@ serve(async (req) => {
       });
     }
 
-    // Get Razorpay credentials
-    const razorpayKeyId = Deno.env.get("RAZORPAY_KEY_ID");
-    const razorpayKeySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
+    // Get Razorpay credentials with fallback support
+    const razorpayKeyId = (Deno.env.get("RAZORPAY_KEY_ID") ?? Deno.env.get("RAZORPAY_KEY") ?? Deno.env.get("RAZORPAY_ID") ?? "").trim();
+    const razorpayKeySecret = (Deno.env.get("RAZORPAY_KEY_SECRET") ?? Deno.env.get("RAZORPAY_SECRET") ?? "").trim();
+
+    console.log("PPV Razorpay credentials check:", {
+      hasKeyId: !!razorpayKeyId,
+      hasKeySecret: !!razorpayKeySecret,
+      keyIdLength: razorpayKeyId?.length || 0,
+      keySecretLength: razorpayKeySecret?.length || 0,
+      keyIdFirst4: razorpayKeyId ? razorpayKeyId.substring(0, 4) : undefined,
+      keySecretFirst4: razorpayKeySecret ? razorpayKeySecret.substring(0, 4) : undefined
+    });
 
     if (!razorpayKeyId || !razorpayKeySecret) {
+      console.error("Missing Razorpay credentials for PPV:", {
+        RAZORPAY_KEY_ID: !!razorpayKeyId,
+        RAZORPAY_KEY_SECRET: !!razorpayKeySecret
+      });
       throw new Error("Razorpay credentials not configured");
     }
 
